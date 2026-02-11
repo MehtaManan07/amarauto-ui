@@ -1,0 +1,81 @@
+// API Configuration
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8002/api';
+
+// API Endpoints
+export const API_ENDPOINTS = {
+  // Auth
+  LOGIN: '/users/login',
+  REGISTER: '/users/register',
+  ME: '/users/me',
+  
+  // Products
+  PRODUCTS: '/products',
+  PRODUCT: (id: string) => `/products/${id}`,
+  PRODUCT_BOM: (id: string, variant?: string) => 
+    `/products/${id}/bom${variant ? `?variant=${variant}` : ''}`,
+  
+  // Raw Materials
+  RAW_MATERIALS: '/raw-materials',
+  RAW_MATERIAL: (id: string) => `/raw-materials/${id}`,
+  CHECK_STOCK: '/raw-materials/check-stock',
+  FIELD_OPTIONS: '/raw-materials/field-options',
+  
+  // BOM
+  BOM: '/bom',
+  BOM_LINE: (id: string) => `/bom/${id}`,
+  
+  // Users
+  USERS: '/users',
+  USER: (id: string) => `/users/${id}`,
+  USERS_BY_ROLE: '/users/role',
+};
+
+// Query Keys for React Query
+export const QUERY_KEYS = {
+  // Auth
+  CURRENT_USER: 'current-user',
+  
+  // Products
+  PRODUCTS: 'products',
+  PRODUCT: (id: string) => ['product', id],
+  PRODUCT_BOM: (id: string, variant?: string) => ['product-bom', id, variant],
+  
+  // Raw Materials
+  RAW_MATERIALS: 'raw-materials',
+  RAW_MATERIAL: (id: string) => ['raw-material', id],
+  STOCK_CHECK: 'stock-check',
+  FIELD_OPTIONS: (fields: string) => ['field-options', fields],
+  
+  // BOM
+  BOM_LINES: 'bom-lines',
+  BOM_LINE: (id: string) => ['bom-line', id],
+  
+  // Users
+  USERS: 'users',
+  USER: (id: string) => ['user', id],
+  USERS_BY_ROLE: (roles: string[]) => ['users-by-role', ...roles],
+};
+
+// User Roles
+export const USER_ROLES = {
+  ADMIN: 'Admin',
+  SUPERVISOR: 'Supervisor',
+  STAFF: 'Staff',
+  WORKER: 'Worker',
+} as const;
+
+export type UserRole = typeof USER_ROLES[keyof typeof USER_ROLES];
+
+// Storage Keys
+export const STORAGE_KEYS = {
+  ACCESS_TOKEN: 'auth-storage',
+  THEME_MODE: 'theme-storage',
+};
+
+// User Status
+export const USER_STATUS = {
+  ACTIVE: 'Active',
+  INACTIVE: 'Inactive',
+} as const;
+
+export type UserStatus = typeof USER_STATUS[keyof typeof USER_STATUS];
