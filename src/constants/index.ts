@@ -11,7 +11,9 @@ export const API_ENDPOINTS = {
   // Products
   PRODUCTS: '/products',
   PRODUCT: (id: string) => `/products/${id}`,
-  PRODUCT_BOM: (id: string, variant?: string) => 
+  PRODUCTS_BULK: '/products/bulk',
+  PRODUCT_FIELD_OPTIONS: '/products/field-options',
+  PRODUCT_BOM: (id: string, variant?: string) =>
     `/products/${id}/bom${variant ? `?variant=${variant}` : ''}`,
   
   // Raw Materials
@@ -38,6 +40,7 @@ export const QUERY_KEYS = {
   // Products
   PRODUCTS: 'products',
   PRODUCT: (id: string) => ['product', id],
+  PRODUCT_FIELD_OPTIONS: (fields: string) => ['product-field-options', fields],
   PRODUCT_BOM: (id: string, variant?: string) => ['product-bom', id, variant],
   
   // Raw Materials

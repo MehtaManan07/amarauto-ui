@@ -6,7 +6,7 @@ import {
   Warning as WarningIcon,
   CheckCircle as ActiveIcon,
 } from '@mui/icons-material';
-import { useProducts } from '../../hooks/useProducts';
+import { useProductsPaginated } from '../../hooks/useProducts';
 import { useRawMaterials, useStockCheck } from '../../hooks/useRawMaterials';
 import { useUser } from '../../stores/authStore';
 
@@ -79,14 +79,14 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, loading,
 export const DashboardPage: React.FC = () => {
   const theme = useTheme();
   const user = useUser();
-  const { data: products, isLoading: loadingProducts } = useProducts();
+  const { data: productsData, isLoading: loadingProducts } = useProductsPaginated(1, 1000);
   const { data: rawMaterials, isLoading: loadingMaterials } = useRawMaterials();
   const { data: lowStock, isLoading: loadingStock } = useStockCheck(true);
 
-  const totalProducts = products?.length || 0;
+  const totalProducts = productsData?.total ?? 0;
   const totalRawMaterials = rawMaterials?.length || 0;
   const lowStockCount = lowStock?.length || 0;
-  const activeProducts = products?.filter(p => p.is_active).length || 0;
+  const activeProducts = productsData?.items?.filter((p) => p.is_active).length ?? 0;
 
   const stats = [
     {

@@ -42,7 +42,16 @@ export interface RawMaterial extends BaseEntity {
   is_active: boolean;
 }
 
-// BOM Line
+// BOM Line (from product detail response)
+export interface BOMLineItem {
+  raw_material_id?: number;
+  raw_material_name?: string;
+  variant?: string;
+  batch_qty?: number;
+  raw_qty?: number;
+}
+
+// Full BOM Line (from BOM API)
 export interface BOMLine extends BaseEntity {
   product_id: number;
   raw_material_id: number;
@@ -52,6 +61,11 @@ export interface BOMLine extends BaseEntity {
   raw_qty: number;
   product?: Product;
   raw_material?: RawMaterial;
+}
+
+// Product with BOM (detail response)
+export interface ProductDetail extends Product {
+  bom_by_variant?: Record<string, BOMLineItem[]>;
 }
 
 // User
@@ -76,6 +90,16 @@ export interface ListResponse<T> {
   total: number;
   page?: number;
   page_size?: number;
+}
+
+// Paginated Response (mystock pattern)
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+  has_more: boolean;
 }
 
 // Login Credentials

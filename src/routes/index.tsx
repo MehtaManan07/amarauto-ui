@@ -3,11 +3,11 @@ import { AuthGuard, GuestGuard } from '../components/common/AuthGuard';
 import MainLayout from '../components/layout/MainLayout';
 import LoginPage from '../features/auth/LoginPage';
 import DashboardPage from '../features/dashboard/DashboardPage';
+import ProductsPage from '../features/products/ProductsPage';
+import ProductDetailPage from '../features/products/ProductDetailPage';
 import { USER_ROLES } from '../constants';
 
 // Placeholder components
-const ProductsPage = () => <div>Products Page - Coming Soon</div>;
-const ProductDetailPage = () => <div>Product Detail - Coming Soon</div>;
 const RawMaterialsPage = () => <div>Raw Materials Page - Coming Soon</div>;
 const BOMPage = () => <div>BOM Page - Coming Soon</div>;
 const UsersPage = () => <div>Users Page - Coming Soon</div>;
