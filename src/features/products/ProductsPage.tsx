@@ -298,7 +298,7 @@ export const ProductsPage: React.FC = () => {
             </Box>
           )}
           {!hasNextPage && products.length > 0 && (
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant="caption" fontSize={16} color="text.secondary">
               All products loaded ({totalCount} total)
             </Typography>
           )}

@@ -22,6 +22,9 @@ export const API_ENDPOINTS = {
   CHECK_STOCK: '/raw-materials/check-stock',
   FIELD_OPTIONS: '/raw-materials/field-options',
   
+  // Dashboard
+  DASHBOARD_STATS: '/dashboard/stats',
+
   // BOM
   BOM: '/bom',
   BOM_LINE: (id: string) => `/bom/${id}`,
@@ -49,6 +52,9 @@ export const QUERY_KEYS = {
   STOCK_CHECK: 'stock-check',
   FIELD_OPTIONS: (fields: string) => ['field-options', fields],
   
+  // Dashboard
+  DASHBOARD_STATS: 'dashboard-stats',
+
   // BOM
   BOM_LINES: 'bom-lines',
   BOM_LINE: (id: string) => ['bom-line', id],

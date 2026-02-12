@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Box, Card, CardContent, Typography, Skeleton, Grid, useTheme } from '@mui/material';
 import {
   Inventory as ProductIcon,
@@ -6,8 +7,7 @@ import {
   Warning as WarningIcon,
   CheckCircle as ActiveIcon,
 } from '@mui/icons-material';
-import { useProductsPaginated } from '../../hooks/useProducts';
-import { useRawMaterials, useStockCheck } from '../../hooks/useRawMaterials';
+import { useDashboardStats } from '../../hooks/useDashboard';
 import { useUser } from '../../stores/authStore';
 
 interface StatCardProps {
@@ -78,44 +78,42 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, loading,
 
 export const DashboardPage: React.FC = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const user = useUser();
-  const { data: productsData, isLoading: loadingProducts } = useProductsPaginated(1, 1000);
-  const { data: rawMaterials, isLoading: loadingMaterials } = useRawMaterials();
-  const { data: lowStock, isLoading: loadingStock } = useStockCheck(true);
-
-  const totalProducts = productsData?.total ?? 0;
-  const totalRawMaterials = rawMaterials?.length || 0;
-  const lowStockCount = lowStock?.length || 0;
-  const activeProducts = productsData?.items?.filter((p) => p.is_active).length ?? 0;
+  const { data: statsData, isLoading: loadingStats } = useDashboardStats();
 
   const stats = [
     {
       title: 'Total Products',
-      value: totalProducts,
+      value: statsData?.total_products ?? 0,
       icon: <ProductIcon />,
       color: theme.palette.primary.main,
-      loading: loadingProducts,
+      loading: loadingStats,
+      onClick: () => navigate('/products'),
     },
     {
       title: 'Raw Materials',
-      value: totalRawMaterials,
+      value: statsData?.raw_materials_count ?? 0,
       icon: <RawMaterialIcon />,
       color: theme.palette.secondary.main,
-      loading: loadingMaterials,
+      loading: loadingStats,
+      onClick: () => navigate('/raw-materials'),
     },
     {
       title: 'Low Stock Items',
-      value: lowStockCount,
+      value: statsData?.low_stock_count ?? 0,
       icon: <WarningIcon />,
       color: theme.palette.warning.main,
-      loading: loadingStock,
+      loading: loadingStats,
+      onClick: () => navigate('/raw-materials'),
     },
     {
       title: 'Active Products',
-      value: activeProducts,
+      value: statsData?.active_products ?? 0,
       icon: <ActiveIcon />,
       color: theme.palette.success.main,
-      loading: loadingProducts,
+      loading: loadingStats,
+      onClick: () => navigate('/products'),
     },
   ];
 

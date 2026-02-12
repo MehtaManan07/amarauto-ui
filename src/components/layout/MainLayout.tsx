@@ -56,10 +56,10 @@ export const MainLayout: React.FC = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  
+
   const user = useAuthStore((state) => state.user);
   const { mode, toggleTheme } = useThemeStore();
   const logout = useLogout();
@@ -93,7 +93,7 @@ export const MainLayout: React.FC = () => {
 
   const drawer = (
     <Box>
-      <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1, cursor: 'pointer' }} onClick={() => navigate('/dashboard')}>
         <ProductIcon sx={{ color: 'primary.main', fontSize: 32 }} />
         <Typography variant="h6" fontWeight={700} color="primary">
           Amar Automobiles
@@ -103,7 +103,7 @@ export const MainLayout: React.FC = () => {
         {navItems.map((item) => {
           if (item.adminOnly && !isAdmin) return null;
           const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
-          
+
           return (
             <ListItem key={item.text} disablePadding>
               <ListItemButton
@@ -138,9 +138,12 @@ export const MainLayout: React.FC = () => {
     <Box sx={{ display: 'flex' }}>
       <AppBar
         position="fixed"
+        elevation={0}
         sx={{
           width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
           ml: { md: `${DRAWER_WIDTH}px` },
+          backgroundColor: 'transparent',
+          color: 'text.primary',
         }}
       >
         <Toolbar>
@@ -173,7 +176,7 @@ export const MainLayout: React.FC = () => {
           </Menu>
         </Toolbar>
       </AppBar>
-      
+
       <Box
         component="nav"
         sx={{ width: { md: DRAWER_WIDTH }, flexShrink: { md: 0 } }}
@@ -201,7 +204,7 @@ export const MainLayout: React.FC = () => {
           {drawer}
         </Drawer>
       </Box>
-      
+
       <Box
         component="main"
         sx={{
