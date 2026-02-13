@@ -10,6 +10,7 @@ import RawMaterialDetailPage from '../features/raw-materials/RawMaterialDetailPa
 import { BOMPage } from '../features/bom/BOMPage';
 import { JobRatesPage } from '../features/job-rates/JobRatesPage';
 import { WorkLogsPage } from '../features/work-logs/WorkLogsPage';
+import { ProductionPage } from '../features/production/ProductionPage';
 import { PartiesPage } from '../features/parties/PartiesPage';
 import { PartyDetailPage } from '../features/parties/PartyDetailPage';
 import { UsersPage } from '../features/users/UsersPage';
@@ -32,6 +33,7 @@ const AppRoutes = () => {
         <Route path="/bom" element={<BOMPage />} />
         <Route path="/job-rates" element={<JobRatesPage />} />
         <Route path="/work-logs" element={<WorkLogsPage />} />
+        <Route path="/production" element={<ProductionPage />} />
         <Route path="/parties" element={<PartiesPage />} />
         <Route path="/parties/:id" element={<PartyDetailPage />} />
         <Route

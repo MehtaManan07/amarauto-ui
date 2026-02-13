@@ -87,6 +87,7 @@ export interface BOMLine extends BaseEntity {
   product_part_no?: string;
   raw_material_name?: string;
   variant?: string;
+  stage_number?: number;
   batch_qty: number;
   raw_qty: number;
   product?: Product;
@@ -168,6 +169,58 @@ export interface Party extends BaseEntity {
   contact_person?: string;
   mobile?: string;
   gstin?: string;
+}
+
+// Production (WIP Stage Inventory)
+export interface StageInventory {
+  id: number;
+  product_id: number;
+  product_part_no?: string;
+  product_name?: string;
+  variant?: string;
+  stage_number: number;
+  quantity: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StageCompletionData {
+  product_id: number;
+  variant?: string;
+  stage_number: number;
+  quantity: number;
+}
+
+export interface MaterialDeduction {
+  raw_material_id: number;
+  raw_material_name: string;
+  qty_deducted: number;
+  remaining_stock: number;
+}
+
+export interface StageCompletionResponse {
+  stage_inventory: StageInventory;
+  materials_deducted: MaterialDeduction[];
+}
+
+export interface MaterialRequirement {
+  raw_material_id: number;
+  raw_material_name: string;
+  unit_type: string;
+  needed_qty: number;
+  current_stock: number;
+  shortage: number;
+  status: 'ok' | 'low';
+}
+
+export interface MaterialsPreviewResponse {
+  product_part_no: string;
+  product_name: string;
+  variant?: string;
+  stage_number: number;
+  quantity: number;
+  materials: MaterialRequirement[];
+  previous_stage_qty?: number;
 }
 
 // User

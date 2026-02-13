@@ -26,6 +26,7 @@ import {
   ListAlt as BOMIcon,
   Work as JobRatesIcon,
   Assignment as WorkLogsIcon,
+  Factory as ProductionIcon,
   Business as PartiesIcon,
   People as UsersIcon,
   DarkMode as DarkModeIcon,
@@ -48,6 +49,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+  { text: 'Production', icon: <ProductionIcon />, path: '/production' },
   { text: 'Products', icon: <ProductIcon />, path: '/products' },
   { text: 'Raw Materials', icon: <RawMaterialIcon />, path: '/raw-materials' },
   { text: 'BOM', icon: <BOMIcon />, path: '/bom' },

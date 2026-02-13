@@ -54,6 +54,7 @@ export const BOMLineFormDialog: React.FC<BOMLineFormDialogProps> = ({
       product_id: 0,
       raw_material_id: 0,
       variant: '',
+      stage_number: 1,
       batch_qty: 1,
       raw_qty: 0,
     },
@@ -66,6 +67,7 @@ export const BOMLineFormDialog: React.FC<BOMLineFormDialogProps> = ({
           product_id: bomLine.product_id,
           raw_material_id: bomLine.raw_material_id,
           variant: bomLine.variant || '',
+          stage_number: bomLine.stage_number ?? 1,
           batch_qty: bomLine.batch_qty ?? 1,
           raw_qty: bomLine.raw_qty ?? 0,
         });
@@ -74,6 +76,7 @@ export const BOMLineFormDialog: React.FC<BOMLineFormDialogProps> = ({
           product_id: 0,
           raw_material_id: 0,
           variant: '',
+          stage_number: 1,
           batch_qty: 1,
           raw_qty: 0,
         });
@@ -86,6 +89,7 @@ export const BOMLineFormDialog: React.FC<BOMLineFormDialogProps> = ({
       product_id: data.product_id,
       raw_material_id: data.raw_material_id,
       variant: data.variant?.trim() || undefined,
+      stage_number: data.stage_number,
       batch_qty: data.batch_qty,
       raw_qty: data.raw_qty,
     };
@@ -190,6 +194,32 @@ export const BOMLineFormDialog: React.FC<BOMLineFormDialogProps> = ({
                     label="Variant (e.g. colour)"
                     error={!!errors.variant}
                     helperText={errors.variant?.message}
+                    disabled={isLoading}
+                    fullWidth
+                  />
+                )}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <Controller
+                name="stage_number"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    value={field.value}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value === ''
+                          ? ''
+                          : parseInt(e.target.value, 10) || 1
+                      )
+                    }
+                    label="Stage"
+                    type="number"
+                    inputProps={{ step: 1, min: 1 }}
+                    helperText="Production stage (1=cutting, 2=stitching, etc.)"
+                    error={!!errors.stage_number}
                     disabled={isLoading}
                     fullWidth
                   />

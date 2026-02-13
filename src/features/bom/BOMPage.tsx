@@ -207,6 +207,14 @@ export const BOMPage: React.FC = () => {
       hideOnMobile: true,
     },
     {
+      id: 'stage_number',
+      label: 'Stage',
+      align: 'center' as const,
+      render: (line: BOMLine) => (
+        <Typography variant="body2">{line.stage_number ?? 1}</Typography>
+      ),
+    },
+    {
       id: 'batch_qty',
       label: 'Batch Qty',
       align: 'center' as const,

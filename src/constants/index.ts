@@ -31,6 +31,11 @@ export const API_ENDPOINTS = {
   DASHBOARD_STATS: '/dashboard/stats',
   DASHBOARD_PRODUCTION_TREND: '/dashboard/production-trend',
 
+  // Production (WIP)
+  PRODUCTION_STAGE_INVENTORY: '/production/stage-inventory',
+  PRODUCTION_COMPLETE_STAGE: '/production/complete-stage',
+  PRODUCTION_MATERIALS_PREVIEW: '/production/materials-preview',
+
   // BOM
   BOM: '/bom',
   BOM_LINE: (id: string) => `/bom/${id}`,
@@ -77,6 +82,11 @@ export const QUERY_KEYS = {
   // Dashboard
   DASHBOARD_STATS: 'dashboard-stats',
   PRODUCTION_TREND: (days: number) => ['production-trend', days],
+
+  // Production (WIP)
+  STAGE_INVENTORY: 'stage-inventory',
+  MATERIALS_PREVIEW: (productId: number, variant: string | undefined, stage: number, qty: number) =>
+    ['materials-preview', productId, variant, stage, qty],
 
   // BOM
   BOM_LINES: 'bom-lines',
