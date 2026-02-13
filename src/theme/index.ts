@@ -1,42 +1,143 @@
 import { createTheme, type ThemeOptions } from '@mui/material/styles';
 
-// Custom color palette - Pastel blue with soft violet accents
-const palette = {
+declare module '@mui/material/styles' {
+  interface Palette {
+    border: { default: string; strong: string };
+    table: { header: string; rowHover: string; rowSelected: string };
+  }
+  interface PaletteOptions {
+    border?: { default: string; strong: string };
+    table?: { header: string; rowHover: string; rowSelected: string };
+  }
+  interface TypeBackground {
+    elevated?: string;
+    sidebar?: string;
+    sidebarActive?: string;
+  }
+  interface TypeText {
+    muted?: string;
+  }
+}
+
+// ERP-optimized color system - low fatigue, 8+ hour usage
+const lightPalette = {
+  mode: 'light' as const,
   primary: {
-    main: '#93C5FD',
-    light: '#BFDBFE',
-    dark: '#60A5FA',
-    contrastText: '#1E3A8A',
+    main: '#1D4ED8',
+    light: '#E0E7FF',
+    dark: '#1E40AF',
+    contrastText: '#FFFFFF',
   },
   secondary: {
-    main: '#C4B5FD',
-    light: '#DDD6FE',
-    dark: '#A78BFA',
-    contrastText: '#4C1D95',
+    main: '#1F2937',
+    light: '#374151',
+    dark: '#111827',
+    contrastText: '#FFFFFF',
   },
   error: {
-    main: '#D32F2F',
-    light: '#EF5350',
-    dark: '#C62828',
+    main: '#B91C1C',
+    light: '#FEE2E2',
+    dark: '#991B1B',
   },
   warning: {
-    main: '#ED6C02',
-    light: '#FF9800',
-    dark: '#E65100',
+    main: '#B45309',
+    light: '#FEF3C7',
+    dark: '#92400E',
   },
   info: {
-    main: '#0288D1',
-    light: '#03A9F4',
-    dark: '#01579B',
+    main: '#0369A1',
+    light: '#E0F2FE',
+    dark: '#075985',
   },
   success: {
-    main: '#2E7D32',
-    light: '#4CAF50',
-    dark: '#1B5E20',
+    main: '#15803D',
+    light: '#DCFCE7',
+    dark: '#166534',
+  },
+  background: {
+    default: '#F4F6F8',
+    paper: '#FFFFFF',
+    elevated: '#F8FAFC',
+    sidebar: '#111827',
+    sidebarActive: '#1F2937',
+  },
+  text: {
+    primary: '#111827',
+    secondary: '#4B5563',
+    muted: '#9CA3AF',
+    disabled: '#D1D5DB',
+  },
+  divider: '#E5E7EB',
+  border: {
+    default: '#E5E7EB',
+    strong: '#D1D5DB',
+  },
+  table: {
+    header: '#F1F5F9',
+    rowHover: '#EEF2FF',
+    rowSelected: '#E0E7FF',
   },
 };
 
-// Common theme options
+const darkPalette = {
+  mode: 'dark' as const,
+  primary: {
+    main: '#3B82F6',
+    light: '#E0E7FF',
+    dark: '#2563EB',
+    contrastText: '#FFFFFF',
+  },
+  secondary: {
+    main: '#1F2937',
+    light: '#374151',
+    dark: '#111827',
+    contrastText: '#FFFFFF',
+  },
+  error: {
+    main: '#DC2626',
+    light: '#FEE2E2',
+    dark: '#B91C1C',
+  },
+  warning: {
+    main: '#D97706',
+    light: '#FEF3C7',
+    dark: '#B45309',
+  },
+  info: {
+    main: '#0284C7',
+    light: '#E0F2FE',
+    dark: '#0369A1',
+  },
+  success: {
+    main: '#16A34A',
+    light: '#DCFCE7',
+    dark: '#15803D',
+  },
+  background: {
+    default: '#0F172A',
+    paper: '#111827',
+    elevated: '#1F2937',
+    sidebar: '#0B1220',
+    sidebarActive: '#1F2937',
+  },
+  text: {
+    primary: '#E5E7EB',
+    secondary: '#9CA3AF',
+    muted: '#6B7280',
+    disabled: '#6B7280',
+  },
+  divider: '#1F2937',
+  border: {
+    default: '#1F2937',
+    strong: '#334155',
+  },
+  table: {
+    header: '#1F2937',
+    rowHover: '#334155',
+    rowSelected: '#1E3A8A',
+  },
+};
+
 const commonOptions: ThemeOptions = {
   typography: {
     fontFamily: '"DM Sans", "Segoe UI", Roboto, sans-serif',
@@ -98,7 +199,7 @@ const commonOptions: ThemeOptions = {
         contained: {
           boxShadow: 'none',
           '&:hover': {
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
           },
         },
       },
@@ -115,10 +216,10 @@ const commonOptions: ThemeOptions = {
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 16,
-          boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+          borderRadius: 12,
+          boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
           '@media (max-width: 600px)': {
-            borderRadius: 12,
+            borderRadius: 10,
           },
         },
       },
@@ -167,7 +268,7 @@ const commonOptions: ThemeOptions = {
     MuiDialog: {
       styleOverrides: {
         paper: {
-          borderRadius: 16,
+          borderRadius: 12,
           '@media (max-width: 600px)': {
             borderRadius: 0,
             margin: 16,
@@ -215,50 +316,12 @@ const commonOptions: ThemeOptions = {
   },
 };
 
-// Light theme
 export const lightTheme = createTheme({
   ...commonOptions,
-  palette: {
-    mode: 'light',
-    ...palette,
-    background: {
-      default: '#F5F7FA',
-      paper: '#FFFFFF',
-    },
-    text: {
-      primary: '#1A2027',
-      secondary: '#637381',
-    },
-    divider: 'rgba(0, 0, 0, 0.08)',
-  },
+  palette: lightPalette,
 });
 
-// Dark theme
 export const darkTheme = createTheme({
   ...commonOptions,
-  palette: {
-    mode: 'dark',
-    ...palette,
-    primary: {
-      main: '#7DD3FC',
-      light: '#BAE6FD',
-      dark: '#38BDF8',
-      contrastText: '#0C4A6E',
-    },
-    secondary: {
-      main: '#A78BFA',
-      light: '#C4B5FD',
-      dark: '#8B5CF6',
-      contrastText: '#FFFFFF',
-    },
-    background: {
-      default: '#0A1929',
-      paper: '#132F4C',
-    },
-    text: {
-      primary: '#FFFFFF',
-      secondary: '#B2BAC2',
-    },
-    divider: 'rgba(255, 255, 255, 0.12)',
-  },
+  palette: darkPalette,
 });

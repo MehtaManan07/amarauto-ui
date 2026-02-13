@@ -25,6 +25,8 @@ import {
   Category as RawMaterialIcon,
   ListAlt as BOMIcon,
   Work as JobRatesIcon,
+  Assignment as WorkLogsIcon,
+  Business as PartiesIcon,
   People as UsersIcon,
   DarkMode as DarkModeIcon,
   LightMode as LightModeIcon,
@@ -50,6 +52,8 @@ const navItems: NavItem[] = [
   { text: 'Raw Materials', icon: <RawMaterialIcon />, path: '/raw-materials' },
   { text: 'BOM', icon: <BOMIcon />, path: '/bom' },
   { text: 'Job Rates', icon: <JobRatesIcon />, path: '/job-rates' },
+  { text: 'Work Logs', icon: <WorkLogsIcon />, path: '/work-logs' },
+  { text: 'Parties', icon: <PartiesIcon />, path: '/parties' },
   { text: 'Users', icon: <UsersIcon />, path: '/users', adminOnly: true },
 ];
 
@@ -93,41 +97,70 @@ export const MainLayout: React.FC = () => {
 
   const isAdmin = user?.role === USER_ROLES.ADMIN || user?.role === USER_ROLES.SUPERVISOR;
 
+  const sidebarBg = theme.palette.background.sidebar ?? '#111827';
+  const sidebarActiveBg = theme.palette.background.sidebarActive ?? '#1F2937';
+
   const drawer = (
-    <Box>
-      <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1, cursor: 'pointer' }} onClick={() => navigate('/dashboard')}>
-        <ProductIcon sx={{ color: 'primary.main', fontSize: 32 }} />
-        <Typography variant="h6" fontWeight={700} color="primary">
+    <Box
+      sx={{
+        height: '100%',
+        bgcolor: sidebarBg,
+        color: '#E5E7EB',
+      }}
+    >
+      <Box
+        sx={{
+          p: 2,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          cursor: 'pointer',
+          borderBottom: '1px solid',
+          borderColor: 'rgba(255,255,255,0.08)',
+        }}
+        onClick={() => navigate('/dashboard')}
+      >
+        <ProductIcon sx={{ color: theme.palette.primary.light, fontSize: 32 }} />
+        <Typography variant="h6" fontWeight={700} sx={{ color: '#E5E7EB' }}>
           Amar Automobiles
         </Typography>
       </Box>
-      <List>
+      <List sx={{ py: 1 }}>
         {navItems.map((item) => {
           if (item.adminOnly && !isAdmin) return null;
           const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
 
           return (
-            <ListItem key={item.text} disablePadding>
+            <ListItem key={item.text} disablePadding sx={{ px: 1, mb: 0.5 }}>
               <ListItemButton
                 selected={isActive}
                 onClick={() => handleNavClick(item.path)}
                 sx={{
+                  borderRadius: 2,
+                  color: isActive ? '#FFFFFF' : 'rgba(229,231,235,0.9)',
+                  '&:hover': {
+                    bgcolor: 'rgba(255,255,255,0.06)',
+                    color: '#FFFFFF',
+                  },
                   '&.Mui-selected': {
-                    bgcolor: 'primary.main',
-                    color: 'white',
+                    bgcolor: sidebarActiveBg,
+                    color: '#FFFFFF',
                     '&:hover': {
-                      bgcolor: 'primary.dark',
+                      bgcolor: '#374151',
                     },
                     '& .MuiListItemIcon-root': {
-                      color: 'white',
+                      color: theme.palette.primary.light,
                     },
+                  },
+                  '& .MuiListItemIcon-root': {
+                    color: 'inherit',
                   },
                 }}
               >
-                <ListItemIcon sx={{ color: isActive ? 'white' : 'inherit' }}>
+                <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
                   {item.icon}
                 </ListItemIcon>
-                <ListItemText primary={item.text} />
+                <ListItemText primary={item.text} sx={{ '& .MuiTypography-root': { fontWeight: isActive ? 600 : 500 } }} />
               </ListItemButton>
             </ListItem>
           );
@@ -137,15 +170,17 @@ export const MainLayout: React.FC = () => {
   );
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', bgcolor: 'background.default' }}>
       <AppBar
         position="fixed"
         elevation={0}
         sx={{
           width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
           ml: { md: `${DRAWER_WIDTH}px` },
-          backgroundColor: 'transparent',
+          bgcolor: 'background.paper',
           color: 'text.primary',
+          borderBottom: '1px solid',
+          borderColor: 'border.default',
         }}
       >
         <Toolbar>
@@ -164,7 +199,7 @@ export const MainLayout: React.FC = () => {
             {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
           </IconButton>
           <IconButton color="inherit" onClick={handleMenuOpen}>
-            <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main' }}>
+            <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
               {user?.name?.charAt(0).toUpperCase() || 'U'}
             </Avatar>
           </IconButton>
@@ -214,6 +249,7 @@ export const MainLayout: React.FC = () => {
           p: 3,
           width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
           mt: 8,
+          bgcolor: 'background.default',
         }}
       >
         <Outlet />

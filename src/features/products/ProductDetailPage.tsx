@@ -68,9 +68,9 @@ export const ProductDetailPage: React.FC = () => {
   const variantKeys = Object.keys(bomByVariant);
 
   const variantAccentColors = [
-    theme.palette.primary.main + '18',
-    theme.palette.secondary.main + '18',
-    theme.palette.info.main + '15',
+    theme.palette.primary.light,
+    theme.palette.info.light,
+    theme.palette.background.elevated,
   ];
 
   const handleEditSubmit = (data: Partial<ProductDetail>) => {
@@ -150,8 +150,8 @@ export const ProductDetailPage: React.FC = () => {
           <IconButton
             onClick={() => navigate('/products')}
             sx={{
-              bgcolor: theme.palette.primary.main + '12',
-              '&:hover': { bgcolor: theme.palette.primary.main + '20' },
+              bgcolor: theme.palette.primary.light,
+              '&:hover': { bgcolor: theme.palette.table.rowHover },
             }}
           >
             <BackIcon />
@@ -161,8 +161,8 @@ export const ProductDetailPage: React.FC = () => {
           <IconButton
             onClick={() => setEditDialogOpen(true)}
             sx={{
-              bgcolor: theme.palette.secondary.main + '15',
-              '&:hover': { bgcolor: theme.palette.secondary.main + '25' },
+              bgcolor: theme.palette.background.elevated,
+              '&:hover': { bgcolor: theme.palette.table.rowHover },
             }}
           >
             <EditIcon />
@@ -173,8 +173,8 @@ export const ProductDetailPage: React.FC = () => {
             color="error"
             onClick={() => setDeleteDialogOpen(true)}
             sx={{
-              bgcolor: theme.palette.error.main + '10',
-              '&:hover': { bgcolor: theme.palette.error.main + '18' },
+              bgcolor: theme.palette.error.light,
+              '&:hover': { bgcolor: theme.palette.error.main, color: 'white' },
             }}
           >
             <DeleteIcon />
@@ -193,12 +193,12 @@ export const ProductDetailPage: React.FC = () => {
                 mb: 3,
                 borderRadius: 2,
                 borderLeft: '4px solid',
-                borderColor: theme.palette.secondary.light,
-                bgcolor: theme.palette.secondary.main + '08',
+                borderColor: theme.palette.border.strong,
+                bgcolor: theme.palette.background.elevated,
               }}
             >
               <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ color: theme.palette.secondary.dark }}>
+                <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary }}>
                   Product Image
                 </Typography>
                 <Box
@@ -223,7 +223,7 @@ export const ProductDetailPage: React.FC = () => {
               gutterBottom
               sx={{
                 mb: 2,
-                color: theme.palette.primary.dark,
+                color: theme.palette.text.primary,
                 fontWeight: 600,
               }}
             >
@@ -247,7 +247,7 @@ export const ProductDetailPage: React.FC = () => {
                         borderColor: 'divider',
                       },
                       '& .MuiAccordionSummary-root.Mui-expanded': {
-                        borderColor: theme.palette.primary.main + '40',
+                        borderColor: theme.palette.border.strong,
                       },
                     }}
                   >
@@ -260,7 +260,7 @@ export const ProductDetailPage: React.FC = () => {
                       <TableContainer>
                         <Table size="small">
                           <TableHead>
-                            <TableRow sx={{ bgcolor: theme.palette.primary.main + '12' }}>
+                            <TableRow sx={{ bgcolor: theme.palette.table.header }}>
                               <TableCell sx={{ fontWeight: 600 }}>Raw Material</TableCell>
                               <TableCell align="right" sx={{ fontWeight: 600 }}>Batch Qty</TableCell>
                               <TableCell align="right" sx={{ fontWeight: 600 }}>Raw Qty</TableCell>
@@ -272,13 +272,10 @@ export const ProductDetailPage: React.FC = () => {
                                 key={index}
                                 sx={{
                                   '&:nth-of-type(even)': {
-                                    bgcolor:
-                                      theme.palette.mode === 'dark'
-                                        ? theme.palette.grey[800] + '40'
-                                        : theme.palette.grey[50],
+                                    bgcolor: theme.palette.background.elevated,
                                   },
                                   '&:hover': {
-                                    bgcolor: theme.palette.action.hover,
+                                    bgcolor: theme.palette.table.rowHover,
                                   },
                                 }}
                               >
@@ -311,11 +308,11 @@ export const ProductDetailPage: React.FC = () => {
                 borderRadius: 2,
                 borderLeft: '4px solid',
                 borderColor: theme.palette.primary.light,
-                bgcolor: theme.palette.primary.main + '08',
+                bgcolor: theme.palette.primary.light,
               }}
             >
               <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.dark }}>
+                <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary }}>
                   Bill of Materials (BOM)
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -340,7 +337,7 @@ export const ProductDetailPage: React.FC = () => {
               gutterBottom
               sx={{
                 mb: 0,
-                color: theme.palette.primary.dark,
+                color: theme.palette.text.primary,
                 fontWeight: 600,
               }}
             >
@@ -374,8 +371,8 @@ export const ProductDetailPage: React.FC = () => {
               sx={{
                 borderRadius: 2,
                 borderLeft: '4px solid',
-                borderColor: theme.palette.secondary.light,
-                bgcolor: theme.palette.secondary.main + '08',
+                borderColor: theme.palette.border.strong,
+                bgcolor: theme.palette.background.elevated,
               }}
             >
               <CardContent>
@@ -404,7 +401,7 @@ export const ProductDetailPage: React.FC = () => {
             >
               <Table size="small">
                 <TableHead>
-                  <TableRow sx={{ bgcolor: theme.palette.primary.main + '12' }}>
+                  <TableRow sx={{ bgcolor: theme.palette.table.header }}>
                     <TableCell sx={{ fontWeight: 600 }}>Operation Code</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Operation Name</TableCell>
                     <TableCell align="right" sx={{ fontWeight: 600 }}>
@@ -424,13 +421,10 @@ export const ProductDetailPage: React.FC = () => {
                       key={rate.id}
                       sx={{
                         '&:nth-of-type(even)': {
-                          bgcolor:
-                            theme.palette.mode === 'dark'
-                              ? theme.palette.grey[800] + '40'
-                              : theme.palette.grey[50],
+                          bgcolor: theme.palette.background.elevated,
                         },
                         '&:hover': {
-                          bgcolor: theme.palette.action.hover,
+                          bgcolor: theme.palette.table.rowHover,
                         },
                       }}
                     >

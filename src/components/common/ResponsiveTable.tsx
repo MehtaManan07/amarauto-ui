@@ -71,7 +71,7 @@ export function ResponsiveTable<T>({
               transition: 'all 0.2s ease-in-out',
               '&:hover': onRowClick
                 ? {
-                    bgcolor: 'action.hover',
+                    bgcolor: theme.palette.table.rowHover,
                     transform: 'translateY(-2px)',
                     boxShadow: theme.shadows[4],
                   }

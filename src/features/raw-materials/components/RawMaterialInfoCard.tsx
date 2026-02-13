@@ -38,12 +38,12 @@ export const RawMaterialInfoCard: React.FC<RawMaterialInfoCardProps> = ({
         borderRadius: 2,
         borderLeft: '4px solid',
         borderColor: theme.palette.primary.main,
-        bgcolor: theme.palette.primary.main + '06',
+        bgcolor: theme.palette.primary.light,
       }}
     >
       <CardContent>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-          <Typography variant="h6" sx={{ color: theme.palette.primary.dark }}>
+          <Typography variant="h6" sx={{ color: theme.palette.text.primary }}>
             {title}
           </Typography>
           <Chip

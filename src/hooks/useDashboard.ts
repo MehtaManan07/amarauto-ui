@@ -8,3 +8,10 @@ export const useDashboardStats = () => {
     queryFn: dashboardApi.getDashboardStats,
   });
 };
+
+export const useProductionTrend = (days: number = 7) => {
+  return useQuery({
+    queryKey: QUERY_KEYS.PRODUCTION_TREND(days),
+    queryFn: () => dashboardApi.getProductionTrend(days),
+  });
+};

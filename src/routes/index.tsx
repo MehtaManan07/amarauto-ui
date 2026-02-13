@@ -9,6 +9,9 @@ import RawMaterialsPage from '../features/raw-materials/RawMaterialsPage';
 import RawMaterialDetailPage from '../features/raw-materials/RawMaterialDetailPage';
 import { BOMPage } from '../features/bom/BOMPage';
 import { JobRatesPage } from '../features/job-rates/JobRatesPage';
+import { WorkLogsPage } from '../features/work-logs/WorkLogsPage';
+import { PartiesPage } from '../features/parties/PartiesPage';
+import { PartyDetailPage } from '../features/parties/PartyDetailPage';
 import { UsersPage } from '../features/users/UsersPage';
 import { USER_ROLES } from '../constants';
 
@@ -28,6 +31,9 @@ const AppRoutes = () => {
         <Route path="/raw-materials/:id" element={<RawMaterialDetailPage />} />
         <Route path="/bom" element={<BOMPage />} />
         <Route path="/job-rates" element={<JobRatesPage />} />
+        <Route path="/work-logs" element={<WorkLogsPage />} />
+        <Route path="/parties" element={<PartiesPage />} />
+        <Route path="/parties/:id" element={<PartyDetailPage />} />
         <Route
           path="/users"
           element={

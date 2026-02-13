@@ -130,6 +130,46 @@ export interface JobRate extends BaseEntity {
   sequence: number;
 }
 
+// Work Log
+export interface WorkLog {
+  id: number;
+  user_id: number;
+  user_name?: string;
+  job_rate_id: number;
+  product_id?: number;
+  product_part_no?: string;
+  product_name?: string;
+  operation_code?: string;
+  operation_name?: string;
+  rate: number;
+  quantity: number;
+  total_amount: number;
+  work_date: string;
+  duration_minutes?: number;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Party (customer/debtor)
+export interface Party extends BaseEntity {
+  name: string;
+  email?: string;
+  state?: string;
+  party_type?: string;
+  address_line_1?: string;
+  address_line_2?: string;
+  address_line_3?: string;
+  address_line_4?: string;
+  address_line_5?: string;
+  pin_code?: string;
+  phone?: string;
+  fax?: string;
+  contact_person?: string;
+  mobile?: string;
+  gstin?: string;
+}
+
 // User
 export interface User extends BaseEntity {
   username: string;

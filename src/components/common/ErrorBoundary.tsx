@@ -85,7 +85,7 @@ export class ErrorBoundary extends Component<Props, State> {
                     maxHeight: 200,
                   }}
                 >
-                  <Typography variant="caption" component="pre" sx={{ fontFamily: 'monospace', color: 'error.contrastText' }}>
+                  <Typography variant="caption" component="pre" sx={{ fontFamily: 'monospace', color: 'error.main' }}>
                     {this.state.error.message}
                     {this.state.errorInfo?.componentStack}
                   </Typography>

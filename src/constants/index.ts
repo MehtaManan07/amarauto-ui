@@ -29,6 +29,7 @@ export const API_ENDPOINTS = {
   
   // Dashboard
   DASHBOARD_STATS: '/dashboard/stats',
+  DASHBOARD_PRODUCTION_TREND: '/dashboard/production-trend',
 
   // BOM
   BOM: '/bom',
@@ -39,6 +40,15 @@ export const API_ENDPOINTS = {
   // Job Rates
   JOB_RATES: '/job-rates',
   JOB_RATE: (id: string) => `/job-rates/${id}`,
+
+  // Work Logs
+  WORK_LOGS: '/work-logs',
+  WORK_LOG: (id: string) => `/work-logs/${id}`,
+
+  // Parties
+  PARTIES: '/parties',
+  PARTY: (id: string) => `/parties/${id}`,
+  PARTIES_FIELD_OPTIONS: '/parties/field-options',
   
   // Users
   USERS: '/users',
@@ -66,6 +76,7 @@ export const QUERY_KEYS = {
   
   // Dashboard
   DASHBOARD_STATS: 'dashboard-stats',
+  PRODUCTION_TREND: (days: number) => ['production-trend', days],
 
   // BOM
   BOM_LINES: 'bom-lines',
@@ -74,6 +85,15 @@ export const QUERY_KEYS = {
   // Job Rates
   JOB_RATES: 'job-rates',
   JOB_RATE: (id: string) => ['job-rate', id],
+
+  // Work Logs
+  WORK_LOGS: 'work-logs',
+  WORK_LOG: (id: string) => ['work-log', id],
+
+  // Parties
+  PARTIES: 'parties',
+  PARTY: (id: string) => ['party', id],
+  PARTIES_FIELD_OPTIONS: (fields: string) => ['parties-field-options', fields],
   
   // Users
   USERS: 'users',

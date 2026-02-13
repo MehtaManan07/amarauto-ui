@@ -63,7 +63,7 @@ export const LoginPage: React.FC = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 50%, ${theme.palette.secondary.main} 100%)`,
+        background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
         p: 2,
       }}
     >
@@ -71,7 +71,7 @@ export const LoginPage: React.FC = () => {
         sx={{
           width: '100%',
           maxWidth: 420,
-          boxShadow: '0 8px 40px rgba(0,0,0,0.2)',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
         }}
       >
         <CardContent sx={{ p: 4 }}>
@@ -81,7 +81,7 @@ export const LoginPage: React.FC = () => {
                 width: 56,
                 height: 56,
                 borderRadius: 3,
-                background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                background: theme.palette.primary.main,
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',

@@ -104,8 +104,8 @@ export const RawMaterialDetailPage: React.FC = () => {
           <IconButton
             onClick={() => navigate('/raw-materials')}
             sx={{
-              bgcolor: theme.palette.primary.main + '12',
-              '&:hover': { bgcolor: theme.palette.primary.main + '20' },
+              bgcolor: theme.palette.primary.light,
+              '&:hover': { bgcolor: theme.palette.table.rowHover },
             }}
           >
             <BackIcon />
@@ -115,8 +115,8 @@ export const RawMaterialDetailPage: React.FC = () => {
           <IconButton
             onClick={() => setEditDialogOpen(true)}
             sx={{
-              bgcolor: theme.palette.secondary.main + '15',
-              '&:hover': { bgcolor: theme.palette.secondary.main + '25' },
+              bgcolor: theme.palette.background.elevated,
+              '&:hover': { bgcolor: theme.palette.table.rowHover },
             }}
           >
             <EditIcon />
@@ -127,8 +127,8 @@ export const RawMaterialDetailPage: React.FC = () => {
             color="error"
             onClick={() => setDeleteDialogOpen(true)}
             sx={{
-              bgcolor: theme.palette.error.main + '10',
-              '&:hover': { bgcolor: theme.palette.error.main + '18' },
+              bgcolor: theme.palette.error.light,
+              '&:hover': { bgcolor: theme.palette.error.main, color: 'white' },
             }}
           >
             <DeleteIcon />
@@ -153,7 +153,7 @@ export const RawMaterialDetailPage: React.FC = () => {
           <Typography
             variant="h6"
             gutterBottom
-            sx={{ mb: 2, color: theme.palette.primary.dark, fontWeight: 600 }}
+            sx={{ mb: 2, color: theme.palette.text.primary, fontWeight: 600 }}
           >
             BOM Usage
           </Typography>
@@ -179,7 +179,7 @@ export const RawMaterialDetailPage: React.FC = () => {
             >
               <Table size="small">
                 <TableHead>
-                  <TableRow sx={{ bgcolor: theme.palette.primary.main + '12' }}>
+                  <TableRow sx={{ bgcolor: theme.palette.table.header }}>
                     <TableCell sx={{ fontWeight: 600 }}>Product</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Part No</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Variant</TableCell>
@@ -199,9 +199,7 @@ export const RawMaterialDetailPage: React.FC = () => {
                       sx={{
                         '&:nth-of-type(even)': {
                           bgcolor:
-                            theme.palette.mode === 'dark'
-                              ? theme.palette.grey[800] + '40'
-                              : theme.palette.grey[50],
+                            theme.palette.background.elevated,
                         },
                       }}
                     >
@@ -232,7 +230,7 @@ export const RawMaterialDetailPage: React.FC = () => {
           <Typography
             variant="h6"
             gutterBottom
-            sx={{ mb: 2, color: theme.palette.primary.dark, fontWeight: 600 }}
+            sx={{ mb: 2, color: theme.palette.text.primary, fontWeight: 600 }}
           >
             Inventory Log
           </Typography>
@@ -256,7 +254,7 @@ export const RawMaterialDetailPage: React.FC = () => {
             >
               <Table size="small">
                 <TableHead>
-                  <TableRow sx={{ bgcolor: theme.palette.primary.main + '12' }}>
+                  <TableRow sx={{ bgcolor: theme.palette.table.header }}>
                     <TableCell sx={{ fontWeight: 600 }}>Date</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Type</TableCell>
                     <TableCell align="right" sx={{ fontWeight: 600 }}>
@@ -278,9 +276,7 @@ export const RawMaterialDetailPage: React.FC = () => {
                       sx={{
                         '&:nth-of-type(even)': {
                           bgcolor:
-                            theme.palette.mode === 'dark'
-                              ? theme.palette.grey[800] + '40'
-                              : theme.palette.grey[50],
+                            theme.palette.background.elevated,
                         },
                       }}
                     >
