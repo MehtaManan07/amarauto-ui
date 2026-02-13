@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import * as bomApi from '../api/bom.api';
 import { useNotificationStore } from '../stores/notificationStore';
 import { QUERY_KEYS } from '../constants';
@@ -8,6 +8,72 @@ export const useBOMLines = (params?: QueryParams) => {
   return useQuery({
     queryKey: [QUERY_KEYS.BOM_LINES, params],
     queryFn: () => bomApi.getBOMLines(params),
+  });
+};
+
+export const useBOMLinesByRawMaterial = (rawMaterialId: number | undefined) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.BOM_LINES, 'by-raw-material', rawMaterialId],
+    queryFn: () => bomApi.getBOMLines({ raw_material_id: rawMaterialId!, page_size: 500 }),
+    enabled: !!rawMaterialId,
+  });
+};
+
+export const useBOMLinesInfinite = (params?: {
+  search?: string;
+  productId?: number;
+  rawMaterialId?: number;
+  variant?: string;
+}) => {
+  const normalizedSearch = params?.search?.trim() || undefined;
+  const productId = params?.productId;
+  const rawMaterialId = params?.rawMaterialId;
+  const variant = params?.variant;
+  return useInfiniteQuery({
+    queryKey: [
+      QUERY_KEYS.BOM_LINES,
+      'infinite',
+      normalizedSearch,
+      productId,
+      rawMaterialId,
+      variant,
+    ],
+    queryFn: ({ pageParam = 1 }) =>
+      bomApi.getBOMLinesPaginated(pageParam, 25, {
+        search: normalizedSearch,
+        product_id: productId,
+        raw_material_id: rawMaterialId,
+        variant,
+      }),
+    getNextPageParam: (lastPage) =>
+      lastPage.has_more ? lastPage.page + 1 : undefined,
+    initialPageParam: 1,
+  });
+};
+
+export const useBOMVariants = (productId: number | undefined) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.BOM_LINES, 'variants', productId],
+    queryFn: () => bomApi.getBOMVariants(productId!),
+    enabled: !!productId,
+  });
+};
+
+export const useProductionCalc = (
+  productId: number | undefined,
+  variant: string | undefined,
+  quantity: number
+) => {
+  return useQuery({
+    queryKey: [
+      QUERY_KEYS.BOM_LINES,
+      'production-calc',
+      productId,
+      variant,
+      quantity,
+    ],
+    queryFn: () => bomApi.getProductionCalc(productId!, variant, quantity),
+    enabled: !!productId && quantity > 0,
   });
 };
 
@@ -70,6 +136,12 @@ export const useDeleteBOMLine = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.BOM_LINES] });
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.PRODUCTS] });
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const key = query.queryKey[0];
+          return key === 'product' || key === 'product-bom';
+        },
+      });
       success('BOM line deleted successfully');
     },
     onError: (err: Error) => {

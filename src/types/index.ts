@@ -28,18 +28,46 @@ export interface Product extends BaseEntity {
 // Raw Material
 export interface RawMaterial extends BaseEntity {
   name: string;
-  unit_type?: string;
+  unit_type: string;
   material_type?: string;
   group?: string;
   min_stock_req?: number;
   min_order_qty?: number;
-  stock_qty?: number;
+  stock_qty: number;
   purchase_price?: number;
-  gst?: number;
+  gst?: string;
   hsn?: string;
   description?: string;
   treat_as_consume: boolean;
   is_active: boolean;
+}
+
+// Inventory Log
+export interface InventoryLog {
+  id: number;
+  raw_material_id: number;
+  user_id?: number;
+  type: 'add' | 'remove' | 'adjust';
+  quantity_delta: number;
+  previous_qty: number;
+  new_qty: number;
+  notes?: string;
+  created_at: string;
+}
+
+// Bulk Upload for Raw Materials
+export interface BulkUploadItemResult {
+  name: string;
+  success: boolean;
+  error?: string;
+  data?: RawMaterial;
+}
+
+export interface BulkUploadResponse {
+  total: number;
+  success_count: number;
+  failure_count: number;
+  results: BulkUploadItemResult[];
 }
 
 // BOM Line (from product detail response)
@@ -55,6 +83,8 @@ export interface BOMLineItem {
 export interface BOMLine extends BaseEntity {
   product_id: number;
   raw_material_id: number;
+  product_name?: string;
+  product_part_no?: string;
   raw_material_name?: string;
   variant?: string;
   batch_qty: number;
@@ -63,9 +93,41 @@ export interface BOMLine extends BaseEntity {
   raw_material?: RawMaterial;
 }
 
+// Production Calculator
+export interface ProductionCalcLine {
+  raw_material_name: string;
+  unit_type: string;
+  needed_qty: number;
+  current_stock: number;
+  shortage: number;
+  status: 'ok' | 'low';
+  purchase_price?: number;
+  order_cost: number;
+}
+
+export interface ProductionCalcResponse {
+  product_part_no: string;
+  product_name: string;
+  variant?: string;
+  quantity: number;
+  lines: ProductionCalcLine[];
+  total_order_cost: number;
+  max_producible_units: number;
+}
+
 // Product with BOM (detail response)
 export interface ProductDetail extends Product {
   bom_by_variant?: Record<string, BOMLineItem[]>;
+}
+
+// Job Rate (operation)
+export interface JobRate extends BaseEntity {
+  product_id: number;
+  product_part_no?: string;
+  operation_code: string;
+  operation_name: string;
+  rate: number;
+  sequence: number;
 }
 
 // User

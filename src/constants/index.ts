@@ -19,8 +19,13 @@ export const API_ENDPOINTS = {
   // Raw Materials
   RAW_MATERIALS: '/raw-materials',
   RAW_MATERIAL: (id: string) => `/raw-materials/${id}`,
+  ADJUST_STOCK: (id: string) => `/raw-materials/${id}/adjust-stock`,
   CHECK_STOCK: '/raw-materials/check-stock',
   FIELD_OPTIONS: '/raw-materials/field-options',
+
+  // Inventory Logs
+  INVENTORY_LOGS: (rawMaterialId: number) =>
+    `/inventory-logs/raw-material/${rawMaterialId}`,
   
   // Dashboard
   DASHBOARD_STATS: '/dashboard/stats',
@@ -28,6 +33,12 @@ export const API_ENDPOINTS = {
   // BOM
   BOM: '/bom',
   BOM_LINE: (id: string) => `/bom/${id}`,
+  BOM_VARIANTS: '/bom/variants',
+  BOM_PRODUCTION_CALC: '/bom/production-calc',
+
+  // Job Rates
+  JOB_RATES: '/job-rates',
+  JOB_RATE: (id: string) => `/job-rates/${id}`,
   
   // Users
   USERS: '/users',
@@ -51,6 +62,7 @@ export const QUERY_KEYS = {
   RAW_MATERIAL: (id: string) => ['raw-material', id],
   STOCK_CHECK: 'stock-check',
   FIELD_OPTIONS: (fields: string) => ['field-options', fields],
+  INVENTORY_LOGS: (rawMaterialId: number) => ['inventory-logs', rawMaterialId],
   
   // Dashboard
   DASHBOARD_STATS: 'dashboard-stats',
@@ -58,6 +70,10 @@ export const QUERY_KEYS = {
   // BOM
   BOM_LINES: 'bom-lines',
   BOM_LINE: (id: string) => ['bom-line', id],
+
+  // Job Rates
+  JOB_RATES: 'job-rates',
+  JOB_RATE: (id: string) => ['job-rate', id],
   
   // Users
   USERS: 'users',

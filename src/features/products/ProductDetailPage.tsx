@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   Box,
   Grid,
@@ -17,9 +17,10 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Button,
   useTheme,
 } from '@mui/material';
-import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
+import { ExpandMore as ExpandMoreIcon, Add as AddIcon } from '@mui/icons-material';
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
@@ -30,8 +31,15 @@ import { LoadingState } from '../../components/common/LoadingState';
 import { ErrorState } from '../../components/common/ErrorState';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { ProductFormDialog, ProductInfoCard } from './components';
+import { JobRateFormDialog } from '../job-rates/components';
 import { useProduct, useUpdateProduct, useDeleteProduct } from '../../hooks/useProducts';
-import type { ProductDetail } from '../../types';
+import {
+  useJobRatesByProduct,
+  useCreateJobRate,
+  useUpdateJobRate,
+  useDeleteJobRate,
+} from '../../hooks/useJobRates';
+import type { ProductDetail, JobRate } from '../../types';
 
 export const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -40,8 +48,17 @@ export const ProductDetailPage: React.FC = () => {
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [jobRateFormOpen, setJobRateFormOpen] = useState(false);
+  const [selectedJobRate, setSelectedJobRate] = useState<JobRate | null>(null);
+  const [jobRateDeleteOpen, setJobRateDeleteOpen] = useState(false);
+  const [jobRateToDelete, setJobRateToDelete] = useState<JobRate | null>(null);
 
   const { data: product, isLoading, isError, refetch } = useProduct(productId);
+  const { data: jobRates = [], isLoading: jobRatesLoading } =
+    useJobRatesByProduct(productId);
+  const createJobRateMutation = useCreateJobRate();
+  const updateJobRateMutation = useUpdateJobRate();
+  const deleteJobRateMutation = useDeleteJobRate();
   const updateMutation = useUpdateProduct();
   const deleteMutation = useDeleteProduct();
 
@@ -67,6 +84,46 @@ export const ProductDetailPage: React.FC = () => {
     deleteMutation.mutate(productId, {
       onSuccess: () => navigate('/products'),
     });
+  };
+
+  const handleOpenJobRateForm = (rate?: JobRate) => {
+    setSelectedJobRate(rate ?? null);
+    setJobRateFormOpen(true);
+  };
+
+  const handleCloseJobRateForm = () => {
+    setJobRateFormOpen(false);
+    setSelectedJobRate(null);
+  };
+
+  const handleJobRateFormSubmit = (data: Partial<JobRate>) => {
+    if (selectedJobRate) {
+      updateJobRateMutation.mutate(
+        { id: selectedJobRate.id, data },
+        { onSuccess: () => handleCloseJobRateForm() }
+      );
+    } else {
+      createJobRateMutation.mutate(
+        { ...data, product_id: productId },
+        { onSuccess: () => handleCloseJobRateForm() }
+      );
+    }
+  };
+
+  const handleOpenJobRateDelete = (rate: JobRate) => {
+    setJobRateToDelete(rate);
+    setJobRateDeleteOpen(true);
+  };
+
+  const handleConfirmJobRateDelete = () => {
+    if (jobRateToDelete) {
+      deleteJobRateMutation.mutate(jobRateToDelete.id, {
+        onSuccess: () => {
+          setJobRateDeleteOpen(false);
+          setJobRateToDelete(null);
+        },
+      });
+    }
   };
 
   if (isLoading) {
@@ -268,7 +325,169 @@ export const ProductDetailPage: React.FC = () => {
             </Card>
           </Grid>
         )}
+
+        <Grid size={12}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              mb: 2,
+            }}
+          >
+            <Typography
+              variant="h6"
+              gutterBottom
+              sx={{
+                mb: 0,
+                color: theme.palette.primary.dark,
+                fontWeight: 600,
+              }}
+            >
+              Operations (Job Rates)
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                variant="outlined"
+                size="small"
+                component={Link}
+                to="/job-rates"
+              >
+                View all operations
+              </Button>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<AddIcon />}
+                onClick={() => handleOpenJobRateForm()}
+              >
+                Add Operation
+              </Button>
+            </Box>
+          </Box>
+          {jobRatesLoading ? (
+            <Typography variant="body2" color="text.secondary">
+              Loading operations...
+            </Typography>
+          ) : jobRates.length === 0 ? (
+            <Card
+              sx={{
+                borderRadius: 2,
+                borderLeft: '4px solid',
+                borderColor: theme.palette.secondary.light,
+                bgcolor: theme.palette.secondary.main + '08',
+              }}
+            >
+              <CardContent>
+                <Typography variant="body2" color="text.secondary">
+                  No operations configured. Add job rates for this product.
+                </Typography>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<AddIcon />}
+                  onClick={() => handleOpenJobRateForm()}
+                  sx={{ mt: 1 }}
+                >
+                  Add Operation
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <TableContainer
+              sx={{
+                borderRadius: 2,
+                border: '1px solid',
+                borderColor: 'divider',
+                overflow: 'hidden',
+              }}
+            >
+              <Table size="small">
+                <TableHead>
+                  <TableRow sx={{ bgcolor: theme.palette.primary.main + '12' }}>
+                    <TableCell sx={{ fontWeight: 600 }}>Operation Code</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Operation Name</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 600 }}>
+                      Rate
+                    </TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 600 }}>
+                      Sequence
+                    </TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 600 }}>
+                      Actions
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {jobRates.map((rate) => (
+                    <TableRow
+                      key={rate.id}
+                      sx={{
+                        '&:nth-of-type(even)': {
+                          bgcolor:
+                            theme.palette.mode === 'dark'
+                              ? theme.palette.grey[800] + '40'
+                              : theme.palette.grey[50],
+                        },
+                        '&:hover': {
+                          bgcolor: theme.palette.action.hover,
+                        },
+                      }}
+                    >
+                      <TableCell>
+                        <Typography variant="body2" fontWeight={600}>
+                          {rate.operation_code}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>{rate.operation_name || '-'}</TableCell>
+                      <TableCell align="right">{rate.rate ?? '-'}</TableCell>
+                      <TableCell align="center">{rate.sequence ?? '-'}</TableCell>
+                      <TableCell align="center">
+                        <IconButton
+                          size="small"
+                          onClick={() => handleOpenJobRateForm(rate)}
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleOpenJobRateDelete(rate)}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </Grid>
       </Grid>
+
+      <JobRateFormDialog
+        open={jobRateFormOpen}
+        jobRate={selectedJobRate}
+        initialProductId={productId}
+        isLoading={createJobRateMutation.isPending || updateJobRateMutation.isPending}
+        onSubmit={handleJobRateFormSubmit}
+        onClose={handleCloseJobRateForm}
+      />
+
+      <ConfirmDialog
+        open={jobRateDeleteOpen}
+        title="Delete Job Rate"
+        message={`Are you sure you want to delete this operation (${jobRateToDelete?.operation_code} - ${jobRateToDelete?.operation_name})?`}
+        confirmLabel="Delete"
+        confirmColor="error"
+        isLoading={deleteJobRateMutation.isPending}
+        onConfirm={handleConfirmJobRateDelete}
+        onCancel={() => {
+          setJobRateDeleteOpen(false);
+          setJobRateToDelete(null);
+        }}
+      />
 
       <ProductFormDialog
         open={editDialogOpen}

@@ -24,6 +24,7 @@ import {
   Inventory2 as ProductIcon,
   Category as RawMaterialIcon,
   ListAlt as BOMIcon,
+  Work as JobRatesIcon,
   People as UsersIcon,
   DarkMode as DarkModeIcon,
   LightMode as LightModeIcon,
@@ -48,6 +49,7 @@ const navItems: NavItem[] = [
   { text: 'Products', icon: <ProductIcon />, path: '/products' },
   { text: 'Raw Materials', icon: <RawMaterialIcon />, path: '/raw-materials' },
   { text: 'BOM', icon: <BOMIcon />, path: '/bom' },
+  { text: 'Job Rates', icon: <JobRatesIcon />, path: '/job-rates' },
   { text: 'Users', icon: <UsersIcon />, path: '/users', adminOnly: true },
 ];
 

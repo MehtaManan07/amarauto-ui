@@ -48,7 +48,7 @@ export const useUpdateUser = () => {
   const { success, error } = useNotificationStore();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<User> }) =>
+    mutationFn: ({ id, data }: { id: number; data: Partial<User> & { password?: string } }) =>
       usersApi.updateUser(id, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.USERS] });

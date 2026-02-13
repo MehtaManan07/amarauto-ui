@@ -5,12 +5,13 @@ import LoginPage from '../features/auth/LoginPage';
 import DashboardPage from '../features/dashboard/DashboardPage';
 import ProductsPage from '../features/products/ProductsPage';
 import ProductDetailPage from '../features/products/ProductDetailPage';
+import RawMaterialsPage from '../features/raw-materials/RawMaterialsPage';
+import RawMaterialDetailPage from '../features/raw-materials/RawMaterialDetailPage';
+import { BOMPage } from '../features/bom/BOMPage';
+import { JobRatesPage } from '../features/job-rates/JobRatesPage';
+import { UsersPage } from '../features/users/UsersPage';
 import { USER_ROLES } from '../constants';
 
-// Placeholder components
-const RawMaterialsPage = () => <div>Raw Materials Page - Coming Soon</div>;
-const BOMPage = () => <div>BOM Page - Coming Soon</div>;
-const UsersPage = () => <div>Users Page - Coming Soon</div>;
 
 const AppRoutes = () => {
   return (
@@ -24,14 +25,16 @@ const AppRoutes = () => {
         <Route path="/products" element={<ProductsPage />} />
         <Route path="/products/:id" element={<ProductDetailPage />} />
         <Route path="/raw-materials" element={<RawMaterialsPage />} />
+        <Route path="/raw-materials/:id" element={<RawMaterialDetailPage />} />
         <Route path="/bom" element={<BOMPage />} />
-        <Route 
-          path="/users" 
+        <Route path="/job-rates" element={<JobRatesPage />} />
+        <Route
+          path="/users"
           element={
             <AuthGuard allowedRoles={[USER_ROLES.ADMIN, USER_ROLES.SUPERVISOR]}>
               <UsersPage />
             </AuthGuard>
-          } 
+          }
         />
       </Route>
       
