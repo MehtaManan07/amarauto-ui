@@ -146,6 +146,8 @@ export interface WorkLog {
   quantity: number;
   total_amount: number;
   work_date: string;
+  start_time?: string;
+  end_time?: string;
   duration_minutes?: number;
   notes?: string;
   created_at: string;

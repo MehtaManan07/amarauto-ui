@@ -223,14 +223,16 @@ export const WorkLogsPage: React.FC = () => {
       ),
     },
     {
-      id: 'duration_minutes',
+      id: 'time',
       label: 'Time',
       align: 'center' as const,
       render: (log: WorkLog) => (
         <Typography variant="body2">
-          {log.duration_minutes != null
-            ? `${log.duration_minutes} min`
-            : '-'}
+          {log.start_time && log.end_time
+            ? `${log.start_time} - ${log.end_time} (${log.duration_minutes ?? 0} min)`
+            : log.duration_minutes != null
+              ? `${log.duration_minutes} min`
+              : '-'}
         </Typography>
       ),
       hideOnMobile: true,

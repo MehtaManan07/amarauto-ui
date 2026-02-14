@@ -59,14 +59,28 @@ export const WorkLogFormDialog: React.FC<WorkLogFormDialogProps> = ({
       user_id: 0,
       job_rate_id: 0,
       work_date: new Date().toISOString().slice(0, 10),
+      start_time: '09:00',
+      end_time: '17:00',
       quantity: 0,
-      duration_minutes: undefined as number | undefined,
       notes: '',
     },
   });
 
   const watchedQuantity = watch('quantity');
   const watchedJobRateId = watch('job_rate_id');
+  const watchedStartTime = watch('start_time');
+  const watchedEndTime = watch('end_time');
+
+  const computedDuration =
+    watchedStartTime && watchedEndTime
+      ? (() => {
+          const [sh, sm] = watchedStartTime.split(':').map(Number);
+          const [eh, em] = watchedEndTime.split(':').map(Number);
+          const startM = sh * 60 + sm;
+          const endM = eh * 60 + em;
+          return endM > startM ? endM - startM : null;
+        })()
+      : null;
   const selectedJobRate = jobRates.find((jr) => jr.id === watchedJobRateId);
   const computedTotal = selectedJobRate
     ? (watchedQuantity || 0) * (selectedJobRate.rate || 0)
@@ -79,8 +93,9 @@ export const WorkLogFormDialog: React.FC<WorkLogFormDialogProps> = ({
           user_id: workLog.user_id,
           job_rate_id: workLog.job_rate_id,
           work_date: workLog.work_date?.slice(0, 10) || new Date().toISOString().slice(0, 10),
+          start_time: workLog.start_time || '09:00',
+          end_time: workLog.end_time || '17:00',
           quantity: workLog.quantity ?? 0,
-          duration_minutes: workLog.duration_minutes ?? undefined,
           notes: workLog.notes || '',
         });
       } else {
@@ -88,8 +103,9 @@ export const WorkLogFormDialog: React.FC<WorkLogFormDialogProps> = ({
           user_id: 0,
           job_rate_id: 0,
           work_date: new Date().toISOString().slice(0, 10),
+          start_time: '09:00',
+          end_time: '17:00',
           quantity: 0,
-          duration_minutes: undefined,
           notes: '',
         });
       }
@@ -101,8 +117,9 @@ export const WorkLogFormDialog: React.FC<WorkLogFormDialogProps> = ({
       user_id: data.user_id,
       job_rate_id: data.job_rate_id,
       work_date: data.work_date,
+      start_time: data.start_time,
+      end_time: data.end_time,
       quantity: data.quantity,
-      duration_minutes: data.duration_minutes ?? undefined,
       notes: data.notes?.trim() || undefined,
     };
     onSubmit(payload as Partial<WorkLog>);
@@ -240,29 +257,55 @@ export const WorkLogFormDialog: React.FC<WorkLogFormDialogProps> = ({
                 )}
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <Controller
-                name="duration_minutes"
+                name="start_time"
                 control={control}
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    value={field.value ?? ''}
-                    onChange={(e) =>
-                      field.onChange(
-                        e.target.value === ''
-                          ? undefined
-                          : parseInt(e.target.value, 10) || 0
-                      )
-                    }
-                    label="Time (minutes)"
-                    type="number"
-                    inputProps={{ min: 0 }}
-                    helperText="How long the operation took"
+                    label="Start Time"
+                    type="time"
+                    InputLabelProps={{ shrink: true }}
+                    inputProps={{ step: 300 }}
+                    error={!!errors.start_time}
+                    helperText={errors.start_time?.message}
                     disabled={isLoading}
                     fullWidth
                   />
                 )}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <Controller
+                name="end_time"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="End Time"
+                    type="time"
+                    InputLabelProps={{ shrink: true }}
+                    inputProps={{ step: 300 }}
+                    error={!!errors.end_time}
+                    helperText={errors.end_time?.message}
+                    disabled={isLoading}
+                    fullWidth
+                  />
+                )}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <TextField
+                label="Duration"
+                value={
+                  computedDuration !== null
+                    ? `${computedDuration} min`
+                    : '-'
+                }
+                disabled
+                fullWidth
+                size="small"
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
