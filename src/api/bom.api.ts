@@ -9,7 +9,7 @@ import type {
 
 export const getBOMLines = async (params?: QueryParams): Promise<BOMLine[]> => {
   const response = await apiClient.get<PaginatedResponse<BOMLine>>(API_ENDPOINTS.BOM, {
-    params: { ...params, page: 1, page_size: 1000 },
+    params: { ...params, page: 1, page_size: 200 },
   });
   return response.data?.items ?? [];
 };
@@ -63,4 +63,51 @@ export const updateBOMLine = async (id: number, data: Partial<BOMLine>): Promise
 
 export const deleteBOMLine = async (id: number): Promise<void> => {
   await apiClient.delete(API_ENDPOINTS.BOM_LINE(id.toString()));
+};
+
+export interface BulkBOMLineItem {
+  raw_material_id: number;
+  variant?: string;
+  stage_number?: number;
+  batch_qty?: number;
+  raw_qty: number;
+}
+
+export interface BulkCreateBOMResult {
+  success_count: number;
+  failure_count: number;
+  results: Array<{ raw_material_id: number; success: boolean; error?: string }>;
+}
+
+export const bulkCreateBOMLines = async (
+  productId: number,
+  lines: BulkBOMLineItem[]
+): Promise<BulkCreateBOMResult> => {
+  const results: BulkCreateBOMResult['results'] = [];
+  let success_count = 0;
+  let failure_count = 0;
+
+  for (const line of lines) {
+    try {
+      await createBOMLine({
+        product_id: productId,
+        raw_material_id: line.raw_material_id,
+        variant: line.variant?.trim() || undefined,
+        stage_number: line.stage_number ?? 1,
+        batch_qty: line.batch_qty ?? 1,
+        raw_qty: line.raw_qty,
+      });
+      results.push({ raw_material_id: line.raw_material_id, success: true });
+      success_count += 1;
+    } catch (err) {
+      results.push({
+        raw_material_id: line.raw_material_id,
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+      });
+      failure_count += 1;
+    }
+  }
+
+  return { success_count, failure_count, results };
 };

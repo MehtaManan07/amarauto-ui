@@ -29,7 +29,7 @@ import {
   useUpdateJobRate,
   useDeleteJobRate,
 } from '../../hooks/useJobRates';
-import { useProducts } from '../../hooks/useProducts';
+import { useProducts, useProductSearch } from '../../hooks/useProducts';
 import type { JobRate, Product } from '../../types';
 
 export const JobRatesPage: React.FC = () => {
@@ -42,7 +42,9 @@ export const JobRatesPage: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [jobRateToDelete, setJobRateToDelete] = useState<JobRate | null>(null);
 
-  const { data: products = [] } = useProducts({ page: 1, page_size: 500 });
+  const [productSearch, setProductSearch] = useState('');
+  const { data: products = [] } = useProducts({ page: 1, page_size: 200 });
+  const { options: productOptions, isLoading: productsLoading } = useProductSearch(productSearch, productFilter?.id);
   const {
     data: jobRates = [],
     isLoading,
@@ -303,12 +305,21 @@ export const JobRatesPage: React.FC = () => {
               </Box>
               <Autocomplete
                 sx={{ minWidth: 220 }}
-                options={products}
+                options={productOptions}
                 getOptionLabel={(opt) =>
                   opt ? `${opt.part_no} - ${opt.name}` : ''
                 }
                 value={productFilter}
-                onChange={(_, value) => setProductFilter(value)}
+                onChange={(_, value) => {
+                  setProductFilter(value);
+                  setProductSearch('');
+                }}
+                onInputChange={(_, value, reason) => {
+                  if (reason === 'input') setProductSearch(value);
+                }}
+                filterOptions={(x) => x}
+                loading={productsLoading}
+                isOptionEqualToValue={(a, b) => a?.id === b?.id}
                 renderInput={(params) => (
                   <TextField {...params} label="Product" size="small" />
                 )}

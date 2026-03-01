@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -18,7 +18,7 @@ import {
   jobRateFormSchema,
   type JobRateFormData,
 } from '../schemas/jobRateSchema';
-import { useProducts } from '../../../hooks/useProducts';
+import { useProductSearch } from '../../../hooks/useProducts';
 
 interface JobRateFormDialogProps {
   open: boolean;
@@ -41,12 +41,13 @@ export const JobRateFormDialog: React.FC<JobRateFormDialogProps> = ({
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isEditing = !!jobRate;
 
-  const { data: products = [] } = useProducts({ page: 1, page_size: 500 });
+  const [productSearch, setProductSearch] = useState('');
 
   const {
     control,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<JobRateFormData>({
     resolver: zodResolver(jobRateFormSchema) as never,
@@ -59,8 +60,15 @@ export const JobRateFormDialog: React.FC<JobRateFormDialogProps> = ({
     },
   });
 
+  const watchedProductId = watch('product_id');
+  const { options: productOptions, isLoading: productsLoading } = useProductSearch(
+    productSearch,
+    watchedProductId || undefined
+  );
+
   useEffect(() => {
     if (open) {
+      setProductSearch('');
       if (jobRate) {
         reset({
           product_id: jobRate.product_id,
@@ -112,7 +120,7 @@ export const JobRateFormDialog: React.FC<JobRateFormDialogProps> = ({
                 control={control}
                 render={({ field }) => (
                   <Autocomplete
-                    options={products}
+                    options={productOptions}
                     getOptionLabel={(opt) =>
                       typeof opt === 'object' && opt
                         ? `${(opt as Product).part_no} - ${(opt as Product).name}`
@@ -120,12 +128,18 @@ export const JobRateFormDialog: React.FC<JobRateFormDialogProps> = ({
                     }
                     value={
                       field.value
-                        ? (products.find((p) => p.id === field.value) ?? null)
+                        ? (productOptions.find((p) => p.id === field.value) ?? null)
                         : null
                     }
-                    onChange={(_, value) =>
-                      field.onChange((value as Product)?.id ?? 0)
-                    }
+                    onChange={(_, value) => {
+                      field.onChange((value as Product)?.id ?? 0);
+                      setProductSearch('');
+                    }}
+                    onInputChange={(_, value, reason) => {
+                      if (reason === 'input') setProductSearch(value);
+                    }}
+                    filterOptions={(x) => x}
+                    loading={productsLoading}
                     isOptionEqualToValue={(opt, val) =>
                       (opt as Product).id === (val as Product)?.id
                     }

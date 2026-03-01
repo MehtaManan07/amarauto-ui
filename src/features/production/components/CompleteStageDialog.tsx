@@ -19,7 +19,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { Check as CheckIcon, Warning as WarningIcon } from '@mui/icons-material';
-import { useProducts } from '../../../hooks/useProducts';
+import { useProductSearch } from '../../../hooks/useProducts';
 import { useBOMVariants } from '../../../hooks/useBOM';
 import {
   useCompleteStage,
@@ -47,8 +47,12 @@ export const CompleteStageDialog: React.FC<CompleteStageDialogProps> = ({
   const [variant, setVariant] = useState<string | null>(null);
   const [stageNumber, setStageNumber] = useState<number>(1);
   const [quantity, setQuantity] = useState<number>(0);
+  const [productSearch, setProductSearch] = useState('');
 
-  const { data: products = [] } = useProducts({ page: 1, page_size: 500 });
+  const { options: productOptions, isLoading: productsLoading } = useProductSearch(
+    productSearch,
+    product?.id ?? (open && prefill ? prefill.product_id : undefined)
+  );
   const { data: variants = [] } = useBOMVariants(product?.id);
   const { data: materialsPreview, isLoading: materialsLoading } =
     useMaterialsPreview(
@@ -63,9 +67,8 @@ export const CompleteStageDialog: React.FC<CompleteStageDialogProps> = ({
 
   useEffect(() => {
     if (open) {
+      setProductSearch('');
       if (prefill) {
-        const p = products.find((x) => x.id === prefill.product_id);
-        setProduct(p ?? null);
         setVariant(prefill.variant ?? null);
         setStageNumber(prefill.stage_number + 1);
         setQuantity(Number(prefill.quantity) || 0);
@@ -76,7 +79,15 @@ export const CompleteStageDialog: React.FC<CompleteStageDialogProps> = ({
         setQuantity(0);
       }
     }
-  }, [open, prefill, products]);
+  }, [open, prefill]);
+
+  // Resolve prefill product from search options once available
+  useEffect(() => {
+    if (open && prefill && !product && productOptions.length > 0) {
+      const p = productOptions.find((x) => x.id === prefill.product_id);
+      if (p) setProduct(p);
+    }
+  }, [open, prefill, product, productOptions]);
 
   const variantOptions =
     variants.length > 0
@@ -119,10 +130,19 @@ export const CompleteStageDialog: React.FC<CompleteStageDialogProps> = ({
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
           <Autocomplete
-            options={products}
-            getOptionLabel={(p) => `${p.part_no} - ${p.name}`}
+            options={productOptions}
+            getOptionLabel={(p) => (p ? `${p.part_no} - ${p.name}` : '')}
             value={product}
-            onChange={(_, v) => setProduct(v)}
+            onChange={(_, v) => {
+              setProduct(v);
+              setProductSearch('');
+            }}
+            onInputChange={(_, value, reason) => {
+              if (reason === 'input') setProductSearch(value);
+            }}
+            filterOptions={(x) => x}
+            loading={productsLoading}
+            isOptionEqualToValue={(a, b) => a?.id === b?.id}
             renderInput={(params) => (
               <TextField {...params} label="Product" required />
             )}

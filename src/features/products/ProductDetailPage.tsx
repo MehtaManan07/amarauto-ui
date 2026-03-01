@@ -32,6 +32,7 @@ import { ErrorState } from '../../components/common/ErrorState';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { ProductFormDialog, ProductInfoCard } from './components';
 import { JobRateFormDialog } from '../job-rates/components';
+import { BulkAddBOMDialog } from '../bom/components/BulkAddBOMDialog';
 import { useProduct, useUpdateProduct, useDeleteProduct } from '../../hooks/useProducts';
 import {
   useJobRatesByProduct,
@@ -52,6 +53,7 @@ export const ProductDetailPage: React.FC = () => {
   const [selectedJobRate, setSelectedJobRate] = useState<JobRate | null>(null);
   const [jobRateDeleteOpen, setJobRateDeleteOpen] = useState(false);
   const [jobRateToDelete, setJobRateToDelete] = useState<JobRate | null>(null);
+  const [bulkBOMDialogOpen, setBulkBOMDialogOpen] = useState(false);
 
   const { data: product, isLoading, isError, refetch } = useProduct(productId);
   const { data: jobRates = [], isLoading: jobRatesLoading } =
@@ -218,17 +220,34 @@ export const ProductDetailPage: React.FC = () => {
 
         {variantKeys.length > 0 ? (
           <Grid size={12}>
-            <Typography
-              variant="h6"
-              gutterBottom
+            <Box
               sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
                 mb: 2,
-                color: theme.palette.text.primary,
-                fontWeight: 600,
               }}
             >
-              Bill of Materials (BOM)
-            </Typography>
+              <Typography
+                variant="h6"
+                gutterBottom
+                sx={{
+                  mb: 0,
+                  color: theme.palette.text.primary,
+                  fontWeight: 600,
+                }}
+              >
+                Bill of Materials (BOM)
+              </Typography>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<AddIcon />}
+                onClick={() => setBulkBOMDialogOpen(true)}
+              >
+                Add BOM
+              </Button>
+            </Box>
             <Grid container spacing={2}>
               {variantKeys.map((variantName, idx) => (
                 <Grid size={{ xs: 12, sm: 6, md: 4 }} key={variantName}>
@@ -315,9 +334,17 @@ export const ProductDetailPage: React.FC = () => {
                 <Typography variant="h6" gutterBottom sx={{ color: theme.palette.text.primary }}>
                   Bill of Materials (BOM)
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  No BOM lines configured. Add BOM entries from the BOM page.
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  No BOM lines configured. Add BOM entries for this product.
                 </Typography>
+                <Button
+                  variant="contained"
+                  size="small"
+                  startIcon={<AddIcon />}
+                  onClick={() => setBulkBOMDialogOpen(true)}
+                >
+                  Add BOM
+                </Button>
               </CardContent>
             </Card>
           </Grid>
@@ -500,6 +527,17 @@ export const ProductDetailPage: React.FC = () => {
         isLoading={deleteMutation.isPending}
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeleteDialogOpen(false)}
+      />
+
+      <BulkAddBOMDialog
+        open={bulkBOMDialogOpen}
+        onClose={() => setBulkBOMDialogOpen(false)}
+        onSuccess={() => {
+          setBulkBOMDialogOpen(false);
+          refetch();
+        }}
+        productId={productId}
+        productName={product.name}
       />
     </Box>
   );

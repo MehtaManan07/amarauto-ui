@@ -1,6 +1,6 @@
 import apiClient from './axios';
 import { API_ENDPOINTS } from '../constants';
-import type { JobRate } from '../types';
+import type { JobRate, PaginatedResponse } from '../types';
 
 export interface JobRatesParams {
   search?: string;
@@ -8,10 +8,21 @@ export interface JobRatesParams {
 }
 
 export const getJobRates = async (params?: JobRatesParams): Promise<JobRate[]> => {
-  const response = await apiClient.get<JobRate[]>(API_ENDPOINTS.JOB_RATES, {
-    params,
+  const response = await apiClient.get<PaginatedResponse<JobRate>>(API_ENDPOINTS.JOB_RATES, {
+    params: { ...params, page: 1, page_size: 200 },
   });
-  return response.data ?? [];
+  return response.data?.items ?? [];
+};
+
+export const getJobRatesPaginated = async (
+  page: number = 1,
+  pageSize: number = 25,
+  params?: JobRatesParams
+): Promise<PaginatedResponse<JobRate>> => {
+  const response = await apiClient.get<PaginatedResponse<JobRate>>(API_ENDPOINTS.JOB_RATES, {
+    params: { page, page_size: pageSize, ...params },
+  });
+  return response.data;
 };
 
 export const getJobRate = async (id: number): Promise<JobRate> => {

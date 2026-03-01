@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import * as bomApi from '../api/bom.api';
+import type { BulkBOMLineItem } from '../api/bom.api';
 import { useNotificationStore } from '../stores/notificationStore';
 import { QUERY_KEYS } from '../constants';
 import type { BOMLine, QueryParams } from '../types';
@@ -14,7 +15,7 @@ export const useBOMLines = (params?: QueryParams) => {
 export const useBOMLinesByRawMaterial = (rawMaterialId: number | undefined) => {
   return useQuery({
     queryKey: [QUERY_KEYS.BOM_LINES, 'by-raw-material', rawMaterialId],
-    queryFn: () => bomApi.getBOMLines({ raw_material_id: rawMaterialId!, page_size: 500 }),
+    queryFn: () => bomApi.getBOMLines({ raw_material_id: rawMaterialId!, page_size: 200 }),
     enabled: !!rawMaterialId,
   });
 };
@@ -82,6 +83,28 @@ export const useBOMLine = (id: number | string) => {
     queryKey: QUERY_KEYS.BOM_LINE(id.toString()),
     queryFn: () => bomApi.getBOMLine(typeof id === 'string' ? parseInt(id) : id),
     enabled: !!id,
+  });
+};
+
+export const useBulkCreateBOMLines = () => {
+  const queryClient = useQueryClient();
+  const { success, error } = useNotificationStore();
+
+  return useMutation({
+    mutationFn: ({ productId, lines }: { productId: number; lines: BulkBOMLineItem[] }) =>
+      bomApi.bulkCreateBOMLines(productId, lines),
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.BOM_LINES] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PRODUCT(variables.productId.toString()) });
+      const msg =
+        data.failure_count > 0
+          ? `${data.success_count} added, ${data.failure_count} failed`
+          : `${data.success_count} BOM line(s) added`;
+      success(msg);
+    },
+    onError: (err: Error) => {
+      error(err.message || 'Failed to add BOM lines');
+    },
   });
 };
 

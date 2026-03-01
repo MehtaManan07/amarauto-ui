@@ -31,7 +31,7 @@ import {
   useUpdateBOMLine,
   useDeleteBOMLine,
 } from '../../hooks/useBOM';
-import { useProducts } from '../../hooks/useProducts';
+import { useProductSearch } from '../../hooks/useProducts';
 import type { BOMLine, Product } from '../../types';
 
 export const BOMPage: React.FC = () => {
@@ -46,7 +46,8 @@ export const BOMPage: React.FC = () => {
   const [bomLineToDelete, setBomLineToDelete] = useState<BOMLine | null>(null);
   const observerTarget = useRef<HTMLDivElement>(null);
 
-  const { data: products = [] } = useProducts({ page: 1, page_size: 500 });
+  const [productSearch, setProductSearch] = useState('');
+  const { options: productOptions, isLoading: productsLoading } = useProductSearch(productSearch, productFilter?.id);
   const {
     data,
     isLoading,
@@ -373,12 +374,21 @@ export const BOMPage: React.FC = () => {
               </Box>
               <Autocomplete
                 sx={{ minWidth: 220 }}
-                options={products}
+                options={productOptions}
                 getOptionLabel={(opt) =>
                   opt ? `${opt.part_no} - ${opt.name}` : ''
                 }
                 value={productFilter}
-                onChange={(_, value) => setProductFilter(value)}
+                onChange={(_, value) => {
+                  setProductFilter(value);
+                  setProductSearch('');
+                }}
+                onInputChange={(_, value, reason) => {
+                  if (reason === 'input') setProductSearch(value);
+                }}
+                filterOptions={(x) => x}
+                loading={productsLoading}
+                isOptionEqualToValue={(a, b) => a?.id === b?.id}
                 renderInput={(params) => (
                   <TextField {...params} label="Product" size="small" />
                 )}

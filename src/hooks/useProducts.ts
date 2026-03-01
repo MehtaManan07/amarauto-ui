@@ -1,7 +1,9 @@
-import { useMutation, useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useMemo } from 'react';
+import { useMutation, useQuery, useInfiniteQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import * as productsApi from '../api/products.api';
 import { useNotificationStore } from '../stores/notificationStore';
 import { QUERY_KEYS } from '../constants';
+import { useDebouncedValue } from './useDebouncedValue';
 import type { Product, QueryParams } from '../types';
 import type { BulkCreateProductItem } from '../api/products.api';
 
@@ -131,4 +133,31 @@ export const useBulkCreateProducts = () => {
       error(err.message || 'Failed to bulk create products');
     },
   });
+};
+
+export const useProductSearch = (search: string, selectedId?: number) => {
+  const debouncedSearch = useDebouncedValue(search, 300);
+
+  const { data: searchResults, isLoading: searchLoading } = useQuery({
+    queryKey: [QUERY_KEYS.PRODUCTS, 'search', debouncedSearch],
+    queryFn: () => productsApi.getProductsPaginated(1, 50, debouncedSearch || undefined),
+    placeholderData: keepPreviousData,
+  });
+
+  const { data: selectedProduct } = useQuery({
+    queryKey: QUERY_KEYS.PRODUCT(selectedId?.toString() ?? ''),
+    queryFn: () => productsApi.getProduct(selectedId!),
+    enabled: !!selectedId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const options = useMemo(() => {
+    const items = searchResults?.items ?? [];
+    if (selectedProduct && !items.some((p) => p.id === selectedProduct.id)) {
+      return [selectedProduct, ...items];
+    }
+    return items;
+  }, [searchResults?.items, selectedProduct]);
+
+  return { options, isLoading: searchLoading };
 };

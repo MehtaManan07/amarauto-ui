@@ -1,7 +1,9 @@
-import { useMutation, useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useMemo } from 'react';
+import { useMutation, useQuery, useInfiniteQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import * as rawMaterialsApi from '../api/raw-materials.api';
 import { useNotificationStore } from '../stores/notificationStore';
 import { QUERY_KEYS } from '../constants';
+import { useDebouncedValue } from './useDebouncedValue';
 import type { RawMaterial, QueryParams } from '../types';
 
 export const useRawMaterials = (params?: QueryParams) => {
@@ -29,7 +31,10 @@ export const useInventoryLogs = (rawMaterialId: number | string) => {
   const id = typeof rawMaterialId === 'string' ? parseInt(rawMaterialId) : rawMaterialId;
   return useQuery({
     queryKey: QUERY_KEYS.INVENTORY_LOGS(id),
-    queryFn: () => rawMaterialsApi.getInventoryLogs(id),
+    queryFn: async () => {
+      const res = await rawMaterialsApi.getInventoryLogs(id);
+      return res.items;
+    },
     enabled: !!id && !Number.isNaN(id),
   });
 };
@@ -174,4 +179,31 @@ export const useDeleteRawMaterial = () => {
       error(err.message || 'Failed to delete raw material');
     },
   });
+};
+
+export const useRawMaterialSearch = (search: string, selectedId?: number) => {
+  const debouncedSearch = useDebouncedValue(search, 300);
+
+  const { data: searchResults, isLoading: searchLoading } = useQuery({
+    queryKey: [QUERY_KEYS.RAW_MATERIALS, 'search', debouncedSearch],
+    queryFn: () => rawMaterialsApi.getRawMaterialsPaginated(1, 50, debouncedSearch || undefined),
+    placeholderData: keepPreviousData,
+  });
+
+  const { data: selectedMaterial } = useQuery({
+    queryKey: QUERY_KEYS.RAW_MATERIAL(selectedId?.toString() ?? ''),
+    queryFn: () => rawMaterialsApi.getRawMaterial(selectedId!),
+    enabled: !!selectedId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const options = useMemo(() => {
+    const items = searchResults?.items ?? [];
+    if (selectedMaterial && !items.some((r) => r.id === selectedMaterial.id)) {
+      return [selectedMaterial, ...items];
+    }
+    return items;
+  }, [searchResults?.items, selectedMaterial]);
+
+  return { options, isLoading: searchLoading };
 };

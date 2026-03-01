@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -18,8 +18,8 @@ import {
   bomLineFormSchema,
   type BOMLineFormData,
 } from '../schemas/bomLineSchema';
-import { useProducts } from '../../../hooks/useProducts';
-import { useRawMaterials } from '../../../hooks/useRawMaterials';
+import { useProductSearch } from '../../../hooks/useProducts';
+import { useRawMaterialSearch } from '../../../hooks/useRawMaterials';
 
 interface BOMLineFormDialogProps {
   open: boolean;
@@ -40,13 +40,14 @@ export const BOMLineFormDialog: React.FC<BOMLineFormDialogProps> = ({
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isEditing = !!bomLine;
 
-  const { data: products = [] } = useProducts({ page: 1, page_size: 500 });
-  const { data: rawMaterials = [] } = useRawMaterials({ page: 1, page_size: 500 });
+  const [productSearch, setProductSearch] = useState('');
+  const [rawMaterialSearch, setRawMaterialSearch] = useState('');
 
   const {
     control,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<BOMLineFormData>({
     resolver: zodResolver(bomLineFormSchema) as never,
@@ -60,8 +61,21 @@ export const BOMLineFormDialog: React.FC<BOMLineFormDialogProps> = ({
     },
   });
 
+  const watchedProductId = watch('product_id');
+  const watchedRawMaterialId = watch('raw_material_id');
+  const { options: productOptions, isLoading: productsLoading } = useProductSearch(
+    productSearch,
+    watchedProductId || undefined
+  );
+  const { options: rawMaterialOptions, isLoading: rawMaterialsLoading } = useRawMaterialSearch(
+    rawMaterialSearch,
+    watchedRawMaterialId || undefined
+  );
+
   useEffect(() => {
     if (open) {
+      setProductSearch('');
+      setRawMaterialSearch('');
       if (bomLine) {
         reset({
           product_id: bomLine.product_id,
@@ -116,7 +130,7 @@ export const BOMLineFormDialog: React.FC<BOMLineFormDialogProps> = ({
                 control={control}
                 render={({ field }) => (
                   <Autocomplete
-                    options={products}
+                    options={productOptions}
                     getOptionLabel={(opt) =>
                       typeof opt === 'object' && opt
                         ? `${(opt as Product).part_no} - ${(opt as Product).name}`
@@ -124,12 +138,18 @@ export const BOMLineFormDialog: React.FC<BOMLineFormDialogProps> = ({
                     }
                     value={
                       field.value
-                        ? (products.find((p) => p.id === field.value) ?? null)
+                        ? (productOptions.find((p) => p.id === field.value) ?? null)
                         : null
                     }
-                    onChange={(_, value) =>
-                      field.onChange((value as Product)?.id ?? 0)
-                    }
+                    onChange={(_, value) => {
+                      field.onChange((value as Product)?.id ?? 0);
+                      setProductSearch('');
+                    }}
+                    onInputChange={(_, value, reason) => {
+                      if (reason === 'input') setProductSearch(value);
+                    }}
+                    filterOptions={(x) => x}
+                    loading={productsLoading}
                     isOptionEqualToValue={(opt, val) =>
                       (opt as Product).id === (val as Product)?.id
                     }
@@ -153,7 +173,7 @@ export const BOMLineFormDialog: React.FC<BOMLineFormDialogProps> = ({
                 control={control}
                 render={({ field }) => (
                   <Autocomplete
-                    options={rawMaterials}
+                    options={rawMaterialOptions}
                     getOptionLabel={(opt) =>
                       typeof opt === 'object' && opt
                         ? (opt as RawMaterial).name
@@ -161,12 +181,18 @@ export const BOMLineFormDialog: React.FC<BOMLineFormDialogProps> = ({
                     }
                     value={
                       field.value
-                        ? (rawMaterials.find((r) => r.id === field.value) ?? null)
+                        ? (rawMaterialOptions.find((r) => r.id === field.value) ?? null)
                         : null
                     }
-                    onChange={(_, value) =>
-                      field.onChange((value as RawMaterial)?.id ?? 0)
-                    }
+                    onChange={(_, value) => {
+                      field.onChange((value as RawMaterial)?.id ?? 0);
+                      setRawMaterialSearch('');
+                    }}
+                    onInputChange={(_, value, reason) => {
+                      if (reason === 'input') setRawMaterialSearch(value);
+                    }}
+                    filterOptions={(x) => x}
+                    loading={rawMaterialsLoading}
                     isOptionEqualToValue={(opt, val) =>
                       (opt as RawMaterial).id === (val as RawMaterial)?.id
                     }

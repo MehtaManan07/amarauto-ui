@@ -11,7 +11,7 @@ import type {
 export const getRawMaterials = async (params?: QueryParams): Promise<RawMaterial[]> => {
   const response = await apiClient.get<PaginatedResponse<RawMaterial>>(
     API_ENDPOINTS.RAW_MATERIALS,
-    { params: { ...params, page: 1, page_size: 1000 } }
+    { params: { ...params, page: 1, page_size: 200 } }
   );
   return response.data?.items ?? [];
 };
@@ -62,10 +62,13 @@ export const adjustStock = async (
 };
 
 export const getInventoryLogs = async (
-  rawMaterialId: number
-): Promise<InventoryLog[]> => {
-  const response = await apiClient.get<InventoryLog[]>(
-    API_ENDPOINTS.INVENTORY_LOGS(rawMaterialId)
+  rawMaterialId: number,
+  page: number = 1,
+  pageSize: number = 25,
+): Promise<PaginatedResponse<InventoryLog>> => {
+  const response = await apiClient.get<PaginatedResponse<InventoryLog>>(
+    API_ENDPOINTS.INVENTORY_LOGS(rawMaterialId),
+    { params: { page, page_size: pageSize } }
   );
   return response.data;
 };

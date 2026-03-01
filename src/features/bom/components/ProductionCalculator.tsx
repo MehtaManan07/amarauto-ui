@@ -16,7 +16,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { Calculate as CalculateIcon } from '@mui/icons-material';
-import { useProducts } from '../../../hooks/useProducts';
+import { useProductSearch } from '../../../hooks/useProducts';
 import { useBOMVariants, useProductionCalc } from '../../../hooks/useBOM';
 import type { Product } from '../../../types';
 
@@ -25,7 +25,8 @@ export const ProductionCalculator: React.FC = () => {
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
 
-  const { data: products = [] } = useProducts({ page: 1, page_size: 500 });
+  const [productSearch, setProductSearch] = useState('');
+  const { options: productOptions, isLoading: productsLoading } = useProductSearch(productSearch, selectedProduct?.id);
   const { data: variants = [] } = useBOMVariants(selectedProduct?.id);
   const { data: calcResult, isLoading } = useProductionCalc(
     selectedProduct?.id,
@@ -60,13 +61,20 @@ export const ProductionCalculator: React.FC = () => {
         >
           <Autocomplete
             sx={{ minWidth: 280 }}
-            options={products}
+            options={productOptions}
             getOptionLabel={(opt) => (opt ? `${opt.part_no} - ${opt.name}` : '')}
             value={selectedProduct}
             onChange={(_, value) => {
               setSelectedProduct(value);
               setSelectedVariant(null);
+              setProductSearch('');
             }}
+            onInputChange={(_, value, reason) => {
+              if (reason === 'input') setProductSearch(value);
+            }}
+            filterOptions={(x) => x}
+            loading={productsLoading}
+            isOptionEqualToValue={(a, b) => a?.id === b?.id}
             renderInput={(params) => (
               <TextField {...params} label="Product" size="small" />
             )}

@@ -21,7 +21,7 @@ import { ErrorState } from '../../components/common/ErrorState';
 import { EmptyState } from '../../components/common/EmptyState';
 import { CompleteStageDialog } from './components/CompleteStageDialog';
 import { useStageInventory } from '../../hooks/useProduction';
-import { useProducts } from '../../hooks/useProducts';
+import { useProductSearch } from '../../hooks/useProducts';
 import type { StageInventory, Product } from '../../types';
 
 export const ProductionPage: React.FC = () => {
@@ -30,8 +30,9 @@ export const ProductionPage: React.FC = () => {
   const [stageFilter, setStageFilter] = useState<number | null>(null);
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
   const [prefillRow, setPrefillRow] = useState<StageInventory | null>(null);
+  const [productSearch, setProductSearch] = useState('');
 
-  const { data: products = [] } = useProducts({ page: 1, page_size: 500 });
+  const { options: productOptions, isLoading: productsLoading } = useProductSearch(productSearch, productFilter?.id);
   const {
     data: stageInventory = [],
     isLoading,
@@ -85,10 +86,19 @@ export const ProductionPage: React.FC = () => {
           >
             <Autocomplete
               size="small"
-              options={products}
-              getOptionLabel={(p) => `${p.part_no} - ${p.name}`}
+              options={productOptions}
+              getOptionLabel={(p) => (p ? `${p.part_no} - ${p.name}` : '')}
               value={productFilter}
-              onChange={(_, v) => setProductFilter(v)}
+              onChange={(_, v) => {
+                setProductFilter(v);
+                setProductSearch('');
+              }}
+              onInputChange={(_, value, reason) => {
+                if (reason === 'input') setProductSearch(value);
+              }}
+              filterOptions={(x) => x}
+              loading={productsLoading}
+              isOptionEqualToValue={(a, b) => a?.id === b?.id}
               renderInput={(params) => (
                 <TextField {...params} label="Product" placeholder="All" />
               )}

@@ -30,7 +30,7 @@ import {
   useDeleteWorkLog,
 } from '../../hooks/useWorkLogs';
 import { useUsersByRole } from '../../hooks/useUsers';
-import { useProducts } from '../../hooks/useProducts';
+import { useProductSearch } from '../../hooks/useProducts';
 import { useAuthStore } from '../../stores/authStore';
 import { USER_ROLES } from '../../constants';
 import type { WorkLog, User, Product } from '../../types';
@@ -52,7 +52,8 @@ export const WorkLogsPage: React.FC = () => {
   const [workLogToDelete, setWorkLogToDelete] = useState<WorkLog | null>(null);
 
   const { data: workers = [] } = useUsersByRole([USER_ROLES.WORKER]);
-  const { data: products = [] } = useProducts({ page: 1, page_size: 500 });
+  const [productSearch, setProductSearch] = useState('');
+  const { options: productOptions, isLoading: productsLoading } = useProductSearch(productSearch, productFilter?.id);
   const {
     data,
     isLoading,
@@ -377,12 +378,21 @@ export const WorkLogsPage: React.FC = () => {
               />
               <Autocomplete
                 sx={{ minWidth: 180 }}
-                options={products}
+                options={productOptions}
                 getOptionLabel={(opt) =>
                   opt ? `${opt.part_no} - ${opt.name}` : ''
                 }
                 value={productFilter}
-                onChange={(_, value) => setProductFilter(value)}
+                onChange={(_, value) => {
+                  setProductFilter(value);
+                  setProductSearch('');
+                }}
+                onInputChange={(_, value, reason) => {
+                  if (reason === 'input') setProductSearch(value);
+                }}
+                filterOptions={(x) => x}
+                loading={productsLoading}
+                isOptionEqualToValue={(a, b) => a?.id === b?.id}
                 renderInput={(params) => (
                   <TextField {...params} label="Product" size="small" />
                 )}
