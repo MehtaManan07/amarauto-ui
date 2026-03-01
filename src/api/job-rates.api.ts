@@ -9,7 +9,7 @@ export interface JobRatesParams {
 
 export const getJobRates = async (params?: JobRatesParams): Promise<JobRate[]> => {
   const response = await apiClient.get<PaginatedResponse<JobRate>>(API_ENDPOINTS.JOB_RATES, {
-    params: { ...params, page: 1, page_size: 200 },
+    params: { ...params, page: 1, page_size: 50 },
   });
   return response.data?.items ?? [];
 };

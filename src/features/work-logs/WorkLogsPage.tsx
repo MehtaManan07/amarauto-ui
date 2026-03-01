@@ -25,10 +25,11 @@ import { ResponsiveTable } from '../../components/common/ResponsiveTable';
 import { WorkLogFormDialog } from './components/WorkLogFormDialog';
 import {
   useWorkLogs,
-  useCreateWorkLog,
   useUpdateWorkLog,
   useDeleteWorkLog,
+  useBulkCreateWorkLogs,
 } from '../../hooks/useWorkLogs';
+import type { WorkLogBulkPayload } from '../../api/work-logs.api';
 import { useUsersByRole } from '../../hooks/useUsers';
 import { useProductSearch } from '../../hooks/useProducts';
 import { useAuthStore } from '../../stores/authStore';
@@ -71,7 +72,7 @@ export const WorkLogsPage: React.FC = () => {
   const total = data?.total ?? 0;
   const totalPages = data?.total_pages ?? 0;
 
-  const createMutation = useCreateWorkLog();
+  const bulkCreateMutation = useBulkCreateWorkLogs();
   const updateMutation = useUpdateWorkLog();
   const deleteMutation = useDeleteWorkLog();
 
@@ -96,11 +97,13 @@ export const WorkLogsPage: React.FC = () => {
         { id: selectedWorkLog.id, data },
         { onSuccess: () => handleCloseFormDialog() }
       );
-    } else {
-      createMutation.mutate(data, {
-        onSuccess: () => handleCloseFormDialog(),
-      });
     }
+  };
+
+  const handleBulkFormSubmit = (data: WorkLogBulkPayload) => {
+    bulkCreateMutation.mutate(data, {
+      onSuccess: () => handleCloseFormDialog(),
+    });
   };
 
   const handleOpenDeleteDialog = (log: WorkLog) => {
@@ -467,8 +470,9 @@ export const WorkLogsPage: React.FC = () => {
       <WorkLogFormDialog
         open={formDialogOpen}
         workLog={selectedWorkLog}
-        isLoading={createMutation.isPending || updateMutation.isPending}
+        isLoading={bulkCreateMutation.isPending || updateMutation.isPending}
         onSubmit={handleFormSubmit}
+        onBulkSubmit={handleBulkFormSubmit}
         onClose={handleCloseFormDialog}
       />
 

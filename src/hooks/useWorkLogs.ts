@@ -89,6 +89,22 @@ export const useUpdateWorkLog = () => {
   });
 };
 
+export const useBulkCreateWorkLogs = () => {
+  const queryClient = useQueryClient();
+  const { success, error } = useNotificationStore();
+
+  return useMutation({
+    mutationFn: (data: workLogsApi.WorkLogBulkPayload) => workLogsApi.bulkCreateWorkLogs(data),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.WORK_LOGS] });
+      success(`${data.length} work log${data.length !== 1 ? 's' : ''} created successfully`);
+    },
+    onError: (err: Error) => {
+      error(err.message || 'Failed to create work logs');
+    },
+  });
+};
+
 export const useDeleteWorkLog = () => {
   const queryClient = useQueryClient();
   const { success, error } = useNotificationStore();

@@ -51,3 +51,22 @@ export const updateWorkLog = async (
 export const deleteWorkLog = async (id: number): Promise<void> => {
   await apiClient.delete(API_ENDPOINTS.WORK_LOG(id.toString()));
 };
+
+export interface WorkLogBulkItem {
+  work_date: string;
+  start_time: string;
+  end_time: string;
+  quantity: number;
+  notes?: string;
+}
+
+export interface WorkLogBulkPayload {
+  user_id: number;
+  job_rate_id: number;
+  items: WorkLogBulkItem[];
+}
+
+export const bulkCreateWorkLogs = async (data: WorkLogBulkPayload): Promise<WorkLog[]> => {
+  const response = await apiClient.post<WorkLog[]>(`${API_ENDPOINTS.WORK_LOGS}/bulk`, data);
+  return response.data;
+};
