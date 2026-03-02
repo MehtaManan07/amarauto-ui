@@ -4,6 +4,7 @@ const timeRegex = /^\d{1,2}:\d{2}$/;
 
 export const workLogRowSchema = z
   .object({
+    job_rate_id: z.number().min(1, 'Operation is required'),
     work_date: z.string().min(1, 'Date is required'),
     start_time: z.string().min(1, 'Start time is required').regex(timeRegex, 'Use HH:MM format'),
     end_time: z.string().min(1, 'End time is required').regex(timeRegex, 'Use HH:MM format'),
@@ -25,7 +26,6 @@ export const workLogRowSchema = z
 
 export const workLogFormSchema = z.object({
   user_id: z.number().min(1, 'Worker is required'),
-  job_rate_id: z.number().min(1, 'Job rate (operation) is required'),
   rows: z.array(workLogRowSchema).min(1),
 });
 

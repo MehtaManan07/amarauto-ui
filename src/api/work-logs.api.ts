@@ -53,6 +53,7 @@ export const deleteWorkLog = async (id: number): Promise<void> => {
 };
 
 export interface WorkLogBulkItem {
+  job_rate_id: number;
   work_date: string;
   start_time: string;
   end_time: string;
@@ -62,7 +63,6 @@ export interface WorkLogBulkItem {
 
 export interface WorkLogBulkPayload {
   user_id: number;
-  job_rate_id: number;
   items: WorkLogBulkItem[];
 }
 

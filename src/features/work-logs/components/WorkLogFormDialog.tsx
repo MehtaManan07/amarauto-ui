@@ -20,12 +20,13 @@ import {
   Add as AddIcon,
   DeleteOutline as DeleteIcon,
 } from '@mui/icons-material';
-import { useForm, Controller, useFieldArray } from 'react-hook-form';
+import { useForm, Controller, useFieldArray, type Control, type FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { WorkLog, User, JobRate } from '../../../types';
 import {
   workLogFormSchema,
   type WorkLogFormData,
+  type WorkLogRowData,
 } from '../schemas/workLogSchema';
 import type { WorkLogBulkPayload } from '../../../api/work-logs.api';
 import { useUsersByRole } from '../../../hooks/useUsers';
@@ -35,13 +36,364 @@ import { USER_ROLES } from '../../../constants';
 
 const today = new Date().toISOString().slice(0, 10);
 
-const defaultRow = {
+const defaultRow: WorkLogRowData = {
+  job_rate_id: 0,
   work_date: today,
   start_time: '09:00',
   end_time: '17:00',
   quantity: 0 as number,
   notes: '',
 };
+
+const getJobRateLabel = (jr: JobRate) =>
+  `${jr.product_part_no || jr.operation_code} - ${jr.operation_code} - ${jr.operation_name || ''}`;
+
+// ── Per-row sub-component ────────────────────────────────────────────────────
+
+interface WorkLogRowFieldsProps {
+  control: Control<WorkLogFormData>;
+  index: number;
+  rowErrors: FieldErrors<WorkLogRowData> | undefined;
+  isLoading: boolean;
+  isMobile: boolean;
+  onRemove: () => void;
+  canRemove: boolean;
+  watchedRow: WorkLogRowData | undefined;
+  initialJobRate?: JobRate | null;
+}
+
+const WorkLogRowFields: React.FC<WorkLogRowFieldsProps> = ({
+  control,
+  index,
+  rowErrors,
+  isLoading,
+  isMobile,
+  onRemove,
+  canRemove,
+  watchedRow,
+  initialJobRate,
+}) => {
+  const [jobRateInput, setJobRateInput] = useState('');
+  const [selectedJobRateObj, setSelectedJobRateObj] = useState<JobRate | null>(
+    initialJobRate ?? null
+  );
+  const debouncedSearch = useDebouncedValue(jobRateInput, 300);
+  const { data: jobRates = [], isFetching } = useJobRates({
+    search: debouncedSearch || undefined,
+  });
+  const jobRateOptions = selectedJobRateObj
+    ? [selectedJobRateObj, ...jobRates.filter((jr) => jr.id !== selectedJobRateObj.id)]
+    : jobRates;
+
+  const duration = (() => {
+    if (!watchedRow?.start_time || !watchedRow?.end_time) return null;
+    const [sh, sm] = watchedRow.start_time.split(':').map(Number);
+    const [eh, em] = watchedRow.end_time.split(':').map(Number);
+    const d = eh * 60 + em - (sh * 60 + sm);
+    return d > 0 ? d : null;
+  })();
+
+  const total = (() => {
+    if (!watchedRow || !selectedJobRateObj) return null;
+    const t = (Number(watchedRow.quantity) || 0) * (Number(selectedJobRateObj.rate) || 0);
+    return t > 0 ? t.toFixed(2) : null;
+  })();
+
+  const operationField = (
+    <Controller
+      name={`rows.${index}.job_rate_id`}
+      control={control}
+      render={({ field }) => (
+        <Autocomplete
+          options={jobRateOptions}
+          getOptionLabel={(opt) =>
+            typeof opt === 'object' && opt ? getJobRateLabel(opt as JobRate) : ''
+          }
+          value={selectedJobRateObj}
+          onChange={(_, value) => {
+            const jr = value as JobRate | null;
+            field.onChange(jr?.id ?? 0);
+            setSelectedJobRateObj(jr);
+          }}
+          onInputChange={(_, val, reason) => {
+            if (reason !== 'reset') setJobRateInput(val);
+          }}
+          filterOptions={(x) => x}
+          isOptionEqualToValue={(opt, val) => (opt as JobRate).id === (val as JobRate)?.id}
+          loading={isFetching}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Operation"
+              placeholder="Search…"
+              error={!!rowErrors?.job_rate_id}
+              helperText={rowErrors?.job_rate_id?.message}
+              disabled={isLoading}
+              size="small"
+              InputProps={{
+                ...params.InputProps,
+                endAdornment: (
+                  <>
+                    {isFetching && <CircularProgress size={14} />}
+                    {params.InputProps.endAdornment}
+                  </>
+                ),
+              }}
+            />
+          )}
+          disabled={isLoading}
+        />
+      )}
+    />
+  );
+
+  if (isMobile) {
+    return (
+      <Box
+        sx={{
+          border: 1,
+          borderColor: 'divider',
+          borderRadius: 1,
+          p: 1.5,
+          mb: 1.5,
+        }}
+      >
+        {canRemove && (
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+            <Typography variant="caption" color="text.secondary">Row {index + 1}</Typography>
+            <IconButton size="small" color="error" onClick={onRemove} disabled={isLoading}>
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        )}
+        <Grid container spacing={1.5}>
+          <Grid size={12}>{operationField}</Grid>
+          <Grid size={12}>
+            <Controller
+              name={`rows.${index}.work_date`}
+              control={control}
+              render={({ field: f }) => (
+                <TextField
+                  {...f}
+                  label="Work Date"
+                  type="date"
+                  InputLabelProps={{ shrink: true }}
+                  error={!!rowErrors?.work_date}
+                  helperText={rowErrors?.work_date?.message}
+                  disabled={isLoading}
+                  fullWidth
+                  size="small"
+                />
+              )}
+            />
+          </Grid>
+          <Grid size={12}>
+            <Controller
+              name={`rows.${index}.quantity`}
+              control={control}
+              render={({ field: f }) => (
+                <TextField
+                  {...f}
+                  label="Quantity"
+                  type="number"
+                  inputProps={{ step: '0.01', min: 0 }}
+                  onChange={(e) =>
+                    f.onChange(e.target.value === '' ? '' : parseFloat(e.target.value) || 0)
+                  }
+                  error={!!rowErrors?.quantity}
+                  helperText={rowErrors?.quantity?.message}
+                  disabled={isLoading}
+                  fullWidth
+                  size="small"
+                />
+              )}
+            />
+          </Grid>
+          <Grid size={6}>
+            <Controller
+              name={`rows.${index}.start_time`}
+              control={control}
+              render={({ field: f }) => (
+                <TextField
+                  {...f}
+                  label="Start"
+                  type="time"
+                  InputLabelProps={{ shrink: true }}
+                  inputProps={{ step: 300 }}
+                  error={!!rowErrors?.start_time}
+                  helperText={rowErrors?.start_time?.message}
+                  disabled={isLoading}
+                  fullWidth
+                  size="small"
+                />
+              )}
+            />
+          </Grid>
+          <Grid size={6}>
+            <Controller
+              name={`rows.${index}.end_time`}
+              control={control}
+              render={({ field: f }) => (
+                <TextField
+                  {...f}
+                  label="End"
+                  type="time"
+                  InputLabelProps={{ shrink: true }}
+                  inputProps={{ step: 300 }}
+                  error={!!(rowErrors as { end_time?: { message?: string } })?.end_time}
+                  helperText={(rowErrors as { end_time?: { message?: string } })?.end_time?.message}
+                  disabled={isLoading}
+                  fullWidth
+                  size="small"
+                />
+              )}
+            />
+          </Grid>
+          <Grid size={12}>
+            <Controller
+              name={`rows.${index}.notes`}
+              control={control}
+              render={({ field: f }) => (
+                <TextField
+                  {...f}
+                  label="Notes (optional)"
+                  disabled={isLoading}
+                  fullWidth
+                  size="small"
+                />
+              )}
+            />
+          </Grid>
+          {duration !== null && (
+            <Grid size={12}>
+              <Typography variant="caption" color="text.secondary">
+                Duration: {duration} min
+                {total ? ` · Total: ₹${total}` : ''}
+              </Typography>
+            </Grid>
+          )}
+        </Grid>
+      </Box>
+    );
+  }
+
+  // Desktop: horizontal row
+  return (
+    <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', mb: 1 }}>
+      <Box sx={{ width: 200, flexShrink: 0 }}>{operationField}</Box>
+      <Controller
+        name={`rows.${index}.work_date`}
+        control={control}
+        render={({ field: f }) => (
+          <TextField
+            {...f}
+            type="date"
+            InputLabelProps={{ shrink: true }}
+            error={!!rowErrors?.work_date}
+            helperText={rowErrors?.work_date?.message}
+            disabled={isLoading}
+            size="small"
+            sx={{ width: 140, flexShrink: 0 }}
+          />
+        )}
+      />
+      <Controller
+        name={`rows.${index}.quantity`}
+        control={control}
+        render={({ field: f }) => (
+          <TextField
+            {...f}
+            type="number"
+            placeholder="Qty"
+            inputProps={{ step: '0.01', min: 0 }}
+            onChange={(e) =>
+              f.onChange(e.target.value === '' ? '' : parseFloat(e.target.value) || 0)
+            }
+            error={!!rowErrors?.quantity}
+            helperText={rowErrors?.quantity?.message}
+            disabled={isLoading}
+            size="small"
+            sx={{ width: 80, flexShrink: 0 }}
+          />
+        )}
+      />
+      <Controller
+        name={`rows.${index}.start_time`}
+        control={control}
+        render={({ field: f }) => (
+          <TextField
+            {...f}
+            type="time"
+            InputLabelProps={{ shrink: true }}
+            inputProps={{ step: 300 }}
+            error={!!rowErrors?.start_time}
+            helperText={rowErrors?.start_time?.message}
+            disabled={isLoading}
+            size="small"
+            sx={{ width: 90, flexShrink: 0 }}
+          />
+        )}
+      />
+      <Controller
+        name={`rows.${index}.end_time`}
+        control={control}
+        render={({ field: f }) => (
+          <TextField
+            {...f}
+            type="time"
+            InputLabelProps={{ shrink: true }}
+            inputProps={{ step: 300 }}
+            error={!!(rowErrors as { end_time?: { message?: string } })?.end_time}
+            helperText={(rowErrors as { end_time?: { message?: string } })?.end_time?.message}
+            disabled={isLoading}
+            size="small"
+            sx={{ width: 90, flexShrink: 0 }}
+          />
+        )}
+      />
+      <Controller
+        name={`rows.${index}.notes`}
+        control={control}
+        render={({ field: f }) => (
+          <TextField
+            {...f}
+            placeholder="Notes"
+            disabled={isLoading}
+            size="small"
+            sx={{ flex: 1, minWidth: 60 }}
+          />
+        )}
+      />
+      <Box sx={{ width: 64, flexShrink: 0, pt: 1, textAlign: 'center' }}>
+        {duration !== null ? (
+          <>
+            <Typography variant="caption" display="block" color="text.secondary">
+              {duration}m
+            </Typography>
+            {total && (
+              <Typography variant="caption" display="block" fontWeight={600}>
+                ₹{total}
+              </Typography>
+            )}
+          </>
+        ) : (
+          <Typography variant="caption" color="text.disabled">-</Typography>
+        )}
+      </Box>
+      <IconButton
+        size="small"
+        color="error"
+        onClick={onRemove}
+        disabled={!canRemove || isLoading}
+        sx={{ flexShrink: 0, mt: 0.5 }}
+      >
+        <DeleteIcon fontSize="small" />
+      </IconButton>
+    </Box>
+  );
+};
+
+// ── Main dialog ──────────────────────────────────────────────────────────────
 
 interface WorkLogFormDialogProps {
   open: boolean;
@@ -68,20 +420,6 @@ export const WorkLogFormDialog: React.FC<WorkLogFormDialogProps> = ({
   const { data: workers = [] } = useUsersByRole([USER_ROLES.WORKER]);
   const workerOptions = Array.isArray(workers) ? workers : [];
 
-  // ── Job rates — server-side search ───────────────────────────────────────
-  const [jobRateInput, setJobRateInput] = useState('');
-  const [selectedJobRateObj, setSelectedJobRateObj] = useState<JobRate | null>(null);
-  const debouncedJobRateSearch = useDebouncedValue(jobRateInput, 300);
-  const { data: jobRates = [], isFetching: jobRatesFetching } = useJobRates({
-    search: debouncedJobRateSearch || undefined,
-  });
-  const jobRateOptions = selectedJobRateObj
-    ? [selectedJobRateObj, ...jobRates.filter((jr) => jr.id !== selectedJobRateObj.id)]
-    : jobRates;
-
-  const getJobRateLabel = (jr: JobRate) =>
-    `${jr.product_part_no || jr.operation_code} - ${jr.operation_code} - ${jr.operation_name || ''}`;
-
   // ── Form ──────────────────────────────────────────────────────────────────
   const {
     control,
@@ -93,7 +431,6 @@ export const WorkLogFormDialog: React.FC<WorkLogFormDialogProps> = ({
     resolver: zodResolver(workLogFormSchema) as never,
     defaultValues: {
       user_id: 0,
-      job_rate_id: 0,
       rows: [{ ...defaultRow }],
     },
   });
@@ -104,12 +441,11 @@ export const WorkLogFormDialog: React.FC<WorkLogFormDialogProps> = ({
   // ── Reset on open ─────────────────────────────────────────────────────────
   useEffect(() => {
     if (open) {
-      setJobRateInput('');
       if (workLog) {
         reset({
           user_id: workLog.user_id,
-          job_rate_id: workLog.job_rate_id,
           rows: [{
+            job_rate_id: workLog.job_rate_id,
             work_date: workLog.work_date?.slice(0, 10) || today,
             start_time: workLog.start_time || '09:00',
             end_time: workLog.end_time || '17:00',
@@ -117,44 +453,14 @@ export const WorkLogFormDialog: React.FC<WorkLogFormDialogProps> = ({
             notes: workLog.notes || '',
           }],
         });
-        setSelectedJobRateObj({
-          id: workLog.job_rate_id,
-          operation_code: workLog.operation_code || '',
-          operation_name: workLog.operation_name || '',
-          rate: workLog.rate,
-          product_part_no: workLog.product_part_no,
-          product_id: workLog.product_id || 0,
-          sequence: 0,
-          created_at: '',
-          updated_at: '',
-        });
       } else {
         reset({
           user_id: 0,
-          job_rate_id: 0,
           rows: [{ ...defaultRow }],
         });
-        setSelectedJobRateObj(null);
       }
     }
   }, [open, workLog, reset]);
-
-  // ── Per-row computed values ───────────────────────────────────────────────
-  const getRowDuration = (index: number) => {
-    const row = watchedRows?.[index];
-    if (!row?.start_time || !row?.end_time) return null;
-    const [sh, sm] = row.start_time.split(':').map(Number);
-    const [eh, em] = row.end_time.split(':').map(Number);
-    const d = eh * 60 + em - (sh * 60 + sm);
-    return d > 0 ? d : null;
-  };
-
-  const getRowTotal = (index: number) => {
-    const row = watchedRows?.[index];
-    if (!row || !selectedJobRateObj) return null;
-    const total = (Number(row.quantity) || 0) * (Number(selectedJobRateObj.rate) || 0);
-    return total > 0 ? total.toFixed(2) : null;
-  };
 
   // ── Submit ────────────────────────────────────────────────────────────────
   const handleFormSubmit = (data: WorkLogFormData) => {
@@ -162,7 +468,7 @@ export const WorkLogFormDialog: React.FC<WorkLogFormDialogProps> = ({
       const row = data.rows[0];
       onSubmit({
         user_id: data.user_id,
-        job_rate_id: data.job_rate_id,
+        job_rate_id: row.job_rate_id,
         work_date: row.work_date,
         start_time: row.start_time,
         end_time: row.end_time,
@@ -172,8 +478,8 @@ export const WorkLogFormDialog: React.FC<WorkLogFormDialogProps> = ({
     } else {
       onBulkSubmit({
         user_id: data.user_id,
-        job_rate_id: data.job_rate_id,
         items: data.rows.map((row) => ({
+          job_rate_id: row.job_rate_id,
           work_date: row.work_date,
           start_time: row.start_time,
           end_time: row.end_time,
@@ -187,6 +493,7 @@ export const WorkLogFormDialog: React.FC<WorkLogFormDialogProps> = ({
   const handleAddRow = () => {
     const last = watchedRows?.[fields.length - 1];
     append({
+      job_rate_id: 0,
       work_date: last?.work_date || today,
       start_time: '09:00',
       end_time: '17:00',
@@ -195,13 +502,28 @@ export const WorkLogFormDialog: React.FC<WorkLogFormDialogProps> = ({
     });
   };
 
+  // Build initialJobRate for the edit-mode row from workLog data
+  const editInitialJobRate: JobRate | null = isEditing && workLog
+    ? {
+        id: workLog.job_rate_id,
+        operation_code: workLog.operation_code || '',
+        operation_name: workLog.operation_name || '',
+        rate: workLog.rate,
+        product_part_no: workLog.product_part_no,
+        product_id: workLog.product_id || 0,
+        sequence: 0,
+        created_at: '',
+        updated_at: '',
+      }
+    : null;
+
   const rowErrors = errors?.rows;
 
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth={isEditing ? 'sm' : 'md'}
+      maxWidth={isEditing ? 'sm' : 'lg'}
       fullWidth
       fullScreen={isMobile}
     >
@@ -211,8 +533,8 @@ export const WorkLogFormDialog: React.FC<WorkLogFormDialogProps> = ({
         </DialogTitle>
 
         <DialogContent>
+          {/* Worker — shared across all rows */}
           <Grid container spacing={2} sx={{ mt: 0.5 }}>
-            {/* Worker */}
             <Grid size={12}>
               <Controller
                 name="user_id"
@@ -242,82 +564,13 @@ export const WorkLogFormDialog: React.FC<WorkLogFormDialogProps> = ({
                 )}
               />
             </Grid>
-
-            {/* Operation */}
-            <Grid size={12}>
-              <Controller
-                name="job_rate_id"
-                control={control}
-                render={({ field }) => (
-                  <Autocomplete
-                    options={jobRateOptions}
-                    getOptionLabel={(opt) =>
-                      typeof opt === 'object' && opt ? getJobRateLabel(opt as JobRate) : ''
-                    }
-                    value={selectedJobRateObj}
-                    onChange={(_, value) => {
-                      const jr = value as JobRate | null;
-                      field.onChange(jr?.id ?? 0);
-                      setSelectedJobRateObj(jr);
-                    }}
-                    onInputChange={(_, val, reason) => {
-                      if (reason !== 'reset') setJobRateInput(val);
-                    }}
-                    filterOptions={(x) => x}
-                    isOptionEqualToValue={(opt, val) =>
-                      (opt as JobRate).id === (val as JobRate)?.id
-                    }
-                    loading={jobRatesFetching}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Operation (Product - Operation)"
-                        error={!!errors.job_rate_id}
-                        helperText={errors.job_rate_id?.message}
-                        disabled={isLoading}
-                        InputProps={{
-                          ...params.InputProps,
-                          endAdornment: (
-                            <>
-                              {jobRatesFetching && <CircularProgress size={18} />}
-                              {params.InputProps.endAdornment}
-                            </>
-                          ),
-                        }}
-                      />
-                    )}
-                    disabled={isLoading}
-                  />
-                )}
-              />
-            </Grid>
-
-            {/* Rate + Operation Code */}
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                label="Rate"
-                value={selectedJobRateObj?.rate ?? '-'}
-                disabled
-                fullWidth
-                size="small"
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                label="Operation Code"
-                value={selectedJobRateObj?.operation_code ?? '-'}
-                disabled
-                fullWidth
-                size="small"
-              />
-            </Grid>
           </Grid>
 
           {/* ── Rows ── */}
           <Box sx={{ mt: 3 }}>
             <Divider sx={{ mb: 2 }} />
 
-            {/* Column header — desktop only */}
+            {/* Column headers — desktop only */}
             {!isMobile && (
               <Box
                 sx={{
@@ -328,279 +581,33 @@ export const WorkLogFormDialog: React.FC<WorkLogFormDialogProps> = ({
                   alignItems: 'center',
                 }}
               >
+                <Typography variant="caption" color="text.secondary" sx={{ width: 200, flexShrink: 0 }}>Operation</Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ width: 140, flexShrink: 0 }}>Date</Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ width: 80, flexShrink: 0 }}>Quantity</Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ width: 95, flexShrink: 0 }}>Start</Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ width: 95, flexShrink: 0 }}>End</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ width: 90, flexShrink: 0 }}>Start</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ width: 90, flexShrink: 0 }}>End</Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ flex: 1 }}>Notes</Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ width: 68, textAlign: 'center', flexShrink: 0 }}>Total</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ width: 64, textAlign: 'center', flexShrink: 0 }}>Total</Typography>
                 <Box sx={{ width: 36, flexShrink: 0 }} />
               </Box>
             )}
 
             {fields.map((field, index) => (
-              <Box key={field.id}>
-                {/* Mobile: stacked card */}
-                {isMobile ? (
-                  <Box
-                    sx={{
-                      border: 1,
-                      borderColor: 'divider',
-                      borderRadius: 1,
-                      p: 1.5,
-                      mb: 1.5,
-                      position: 'relative',
-                    }}
-                  >
-                    {fields.length > 1 && (
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                        <Typography variant="caption" color="text.secondary">Row {index + 1}</Typography>
-                        <IconButton size="small" color="error" onClick={() => remove(index)} disabled={isLoading}>
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    )}
-                    <Grid container spacing={1.5}>
-                      <Grid size={12}>
-                        <Controller
-                          name={`rows.${index}.work_date`}
-                          control={control}
-                          render={({ field: f }) => (
-                            <TextField
-                              {...f}
-                              label="Work Date"
-                              type="date"
-                              InputLabelProps={{ shrink: true }}
-                              error={!!rowErrors?.[index]?.work_date}
-                              helperText={rowErrors?.[index]?.work_date?.message}
-                              disabled={isLoading}
-                              fullWidth
-                              size="small"
-                            />
-                          )}
-                        />
-                      </Grid>
-                      <Grid size={12}>
-                        <Controller
-                          name={`rows.${index}.quantity`}
-                          control={control}
-                          render={({ field: f }) => (
-                            <TextField
-                              {...f}
-                              label="Quantity"
-                              type="number"
-                              inputProps={{ step: '0.01', min: 0 }}
-                              onChange={(e) =>
-                                f.onChange(e.target.value === '' ? '' : parseFloat(e.target.value) || 0)
-                              }
-                              error={!!rowErrors?.[index]?.quantity}
-                              helperText={rowErrors?.[index]?.quantity?.message}
-                              disabled={isLoading}
-                              fullWidth
-                              size="small"
-                            />
-                          )}
-                        />
-                      </Grid>
-                      <Grid size={6}>
-                        <Controller
-                          name={`rows.${index}.start_time`}
-                          control={control}
-                          render={({ field: f }) => (
-                            <TextField
-                              {...f}
-                              label="Start"
-                              type="time"
-                              InputLabelProps={{ shrink: true }}
-                              inputProps={{ step: 300 }}
-                              error={!!rowErrors?.[index]?.start_time}
-                              helperText={rowErrors?.[index]?.start_time?.message}
-                              disabled={isLoading}
-                              fullWidth
-                              size="small"
-                            />
-                          )}
-                        />
-                      </Grid>
-                      <Grid size={6}>
-                        <Controller
-                          name={`rows.${index}.end_time`}
-                          control={control}
-                          render={({ field: f }) => (
-                            <TextField
-                              {...f}
-                              label="End"
-                              type="time"
-                              InputLabelProps={{ shrink: true }}
-                              inputProps={{ step: 300 }}
-                              error={!!(rowErrors?.[index] as { end_time?: { message?: string } })?.end_time}
-                              helperText={(rowErrors?.[index] as { end_time?: { message?: string } })?.end_time?.message}
-                              disabled={isLoading}
-                              fullWidth
-                              size="small"
-                            />
-                          )}
-                        />
-                      </Grid>
-                      <Grid size={12}>
-                        <Controller
-                          name={`rows.${index}.notes`}
-                          control={control}
-                          render={({ field: f }) => (
-                            <TextField
-                              {...f}
-                              label="Notes (optional)"
-                              disabled={isLoading}
-                              fullWidth
-                              size="small"
-                            />
-                          )}
-                        />
-                      </Grid>
-                      {getRowDuration(index) !== null && (
-                        <Grid size={12}>
-                          <Typography variant="caption" color="text.secondary">
-                            Duration: {getRowDuration(index)} min
-                            {getRowTotal(index) ? ` · Total: ₹${getRowTotal(index)}` : ''}
-                          </Typography>
-                        </Grid>
-                      )}
-                    </Grid>
-                  </Box>
-                ) : (
-                  /* Desktop: horizontal row */
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      gap: 1,
-                      alignItems: 'flex-start',
-                      mb: 1,
-                    }}
-                  >
-                    <Controller
-                      name={`rows.${index}.work_date`}
-                      control={control}
-                      render={({ field: f }) => (
-                        <TextField
-                          {...f}
-                          type="date"
-                          InputLabelProps={{ shrink: true }}
-                          error={!!rowErrors?.[index]?.work_date}
-                          helperText={rowErrors?.[index]?.work_date?.message}
-                          disabled={isLoading}
-                          size="small"
-                          sx={{ width: 140, flexShrink: 0 }}
-                        />
-                      )}
-                    />
-                    <Controller
-                      name={`rows.${index}.quantity`}
-                      control={control}
-                      render={({ field: f }) => (
-                        <TextField
-                          {...f}
-                          type="number"
-                          placeholder="Qty"
-                          inputProps={{ step: '0.01', min: 0 }}
-                          onChange={(e) =>
-                            f.onChange(e.target.value === '' ? '' : parseFloat(e.target.value) || 0)
-                          }
-                          error={!!rowErrors?.[index]?.quantity}
-                          helperText={rowErrors?.[index]?.quantity?.message}
-                          disabled={isLoading}
-                          size="small"
-                          sx={{ width: 80, flexShrink: 0 }}
-                        />
-                      )}
-                    />
-                    <Controller
-                      name={`rows.${index}.start_time`}
-                      control={control}
-                      render={({ field: f }) => (
-                        <TextField
-                          {...f}
-                          type="time"
-                          InputLabelProps={{ shrink: true }}
-                          inputProps={{ step: 300 }}
-                          error={!!rowErrors?.[index]?.start_time}
-                          helperText={rowErrors?.[index]?.start_time?.message}
-                          disabled={isLoading}
-                          size="small"
-                          sx={{ width: 95, flexShrink: 0 }}
-                        />
-                      )}
-                    />
-                    <Controller
-                      name={`rows.${index}.end_time`}
-                      control={control}
-                      render={({ field: f }) => (
-                        <TextField
-                          {...f}
-                          type="time"
-                          InputLabelProps={{ shrink: true }}
-                          inputProps={{ step: 300 }}
-                          error={!!(rowErrors?.[index] as { end_time?: { message?: string } })?.end_time}
-                          helperText={(rowErrors?.[index] as { end_time?: { message?: string } })?.end_time?.message}
-                          disabled={isLoading}
-                          size="small"
-                          sx={{ width: 95, flexShrink: 0 }}
-                        />
-                      )}
-                    />
-                    <Controller
-                      name={`rows.${index}.notes`}
-                      control={control}
-                      render={({ field: f }) => (
-                        <TextField
-                          {...f}
-                          placeholder="Notes"
-                          disabled={isLoading}
-                          size="small"
-                          sx={{ flex: 1 }}
-                        />
-                      )}
-                    />
-                    {/* Duration + Total */}
-                    <Box
-                      sx={{
-                        width: 68,
-                        flexShrink: 0,
-                        pt: 1,
-                        textAlign: 'center',
-                      }}
-                    >
-                      {getRowDuration(index) !== null ? (
-                        <>
-                          <Typography variant="caption" display="block" color="text.secondary">
-                            {getRowDuration(index)}m
-                          </Typography>
-                          {getRowTotal(index) && (
-                            <Typography variant="caption" display="block" fontWeight={600}>
-                              ₹{getRowTotal(index)}
-                            </Typography>
-                          )}
-                        </>
-                      ) : (
-                        <Typography variant="caption" color="text.disabled">-</Typography>
-                      )}
-                    </Box>
-
-                    {/* Delete row */}
-                    <IconButton
-                      size="small"
-                      color="error"
-                      onClick={() => remove(index)}
-                      disabled={fields.length === 1 || isLoading}
-                      sx={{ flexShrink: 0, mt: 0.5 }}
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </Box>
-                )}
-              </Box>
+              <WorkLogRowFields
+                key={field.id}
+                control={control}
+                index={index}
+                rowErrors={rowErrors?.[index] as FieldErrors<WorkLogRowData> | undefined}
+                isLoading={isLoading}
+                isMobile={isMobile}
+                onRemove={() => remove(index)}
+                canRemove={fields.length > 1}
+                watchedRow={watchedRows?.[index]}
+                initialJobRate={isEditing && index === 0 ? editInitialJobRate : undefined}
+              />
             ))}
 
-            {/* Add Row — only for create mode */}
+            {/* Add Row — create mode only */}
             {!isEditing && (
               <Button
                 size="small"
