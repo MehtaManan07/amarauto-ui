@@ -66,6 +66,7 @@ export const WorkLogFormDialog: React.FC<WorkLogFormDialogProps> = ({
 
   // ── Workers autocomplete ──────────────────────────────────────────────────
   const { data: workers = [] } = useUsersByRole([USER_ROLES.WORKER]);
+  const workerOptions = Array.isArray(workers) ? workers : [];
 
   // ── Job rates — server-side search ───────────────────────────────────────
   const [jobRateInput, setJobRateInput] = useState('');
@@ -218,13 +219,13 @@ export const WorkLogFormDialog: React.FC<WorkLogFormDialogProps> = ({
                 control={control}
                 render={({ field }) => (
                   <Autocomplete
-                    options={workers}
+                    options={workerOptions}
                     getOptionLabel={(opt) =>
                       typeof opt === 'object' && opt
                         ? `${(opt as User).name} (${(opt as User).username})`
                         : ''
                     }
-                    value={field.value ? (workers.find((u) => u.id === field.value) ?? null) : null}
+                    value={field.value ? (workerOptions.find((u) => u.id === field.value) ?? null) : null}
                     onChange={(_, value) => field.onChange((value as User)?.id ?? 0)}
                     isOptionEqualToValue={(opt, val) => (opt as User).id === (val as User)?.id}
                     renderInput={(params) => (

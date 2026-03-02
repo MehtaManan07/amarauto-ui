@@ -1,6 +1,6 @@
 // API Configuration
-// export const API_BASE_URL =  'https://softx-api.duckdns.org/api';
-export const API_BASE_URL =  'http://localhost:8002/api';
+export const API_BASE_URL =  'https://softx-api.duckdns.org/api';
+// export const API_BASE_URL =  'http://localhost:8002/api';
 
 // API Endpoints
 export const API_ENDPOINTS = {

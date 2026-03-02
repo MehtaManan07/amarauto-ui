@@ -53,6 +53,7 @@ export const WorkLogsPage: React.FC = () => {
   const [workLogToDelete, setWorkLogToDelete] = useState<WorkLog | null>(null);
 
   const { data: workers = [] } = useUsersByRole([USER_ROLES.WORKER]);
+  const workerOptions = Array.isArray(workers) ? workers : [];
   const [productSearch, setProductSearch] = useState('');
   const { options: productOptions, isLoading: productsLoading } = useProductSearch(productSearch, productFilter?.id);
   const {
@@ -129,7 +130,7 @@ export const WorkLogsPage: React.FC = () => {
   };
 
   const handleUserClick = (userId: number) => {
-    setUserFilter(workers.find((u) => u.id === userId) ?? null);
+    setUserFilter(workerOptions.find((u) => u.id === userId) ?? null);
   };
 
   const handleProductClick = (productId: number) => {
@@ -369,7 +370,7 @@ export const WorkLogsPage: React.FC = () => {
               </Box>
               <Autocomplete
                 sx={{ minWidth: 180 }}
-                options={workers}
+                options={workerOptions}
                 getOptionLabel={(opt) =>
                   opt ? `${opt.name} (${opt.username})` : ''
                 }

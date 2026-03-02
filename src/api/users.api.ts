@@ -2,9 +2,22 @@ import apiClient from './axios';
 import { API_ENDPOINTS } from '../constants';
 import type { User, QueryParams } from '../types';
 
+const normalizeUsersList = (payload: unknown): User[] => {
+  if (Array.isArray(payload)) return payload as User[];
+  if (
+    payload &&
+    typeof payload === 'object' &&
+    'items' in payload &&
+    Array.isArray((payload as { items?: unknown }).items)
+  ) {
+    return (payload as { items: User[] }).items;
+  }
+  return [];
+};
+
 export const getUsers = async (params?: QueryParams): Promise<User[]> => {
-  const response = await apiClient.get<User[]>(API_ENDPOINTS.USERS, { params });
-  return response.data;
+  const response = await apiClient.get<User[] | { items?: User[] }>(API_ENDPOINTS.USERS, { params });
+  return normalizeUsersList(response.data);
 };
 
 export const getUser = async (id: number): Promise<User> => {
@@ -29,6 +42,8 @@ export const deleteUser = async (id: number): Promise<void> => {
 export const getUsersByRole = async (roles: string[]): Promise<User[]> => {
   const params = new URLSearchParams();
   roles.forEach(role => params.append('role', role));
-  const response = await apiClient.get<User[]>(`${API_ENDPOINTS.USERS_BY_ROLE}?${params.toString()}`);
-  return response.data;
+  const response = await apiClient.get<User[] | { items?: User[] }>(
+    `${API_ENDPOINTS.USERS_BY_ROLE}?${params.toString()}`
+  );
+  return normalizeUsersList(response.data);
 };

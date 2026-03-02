@@ -13,8 +13,6 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children, allowedRoles }) 
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const user = useAuthStore((state) => state.user);
 
-  console.log('isAuthenticated', isAuthenticated);
-  console.log('user', user, location);
 
 
   if (!isAuthenticated) {
