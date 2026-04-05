@@ -47,10 +47,10 @@ export const useRawMaterial = (id: number | string) => {
   });
 };
 
-export const useStockCheck = (belowMinOnly?: boolean) => {
+export const useStockCheck = (belowMinOnly?: boolean, limit?: number) => {
   return useQuery({
-    queryKey: [QUERY_KEYS.STOCK_CHECK, belowMinOnly],
-    queryFn: () => rawMaterialsApi.checkStock(belowMinOnly),
+    queryKey: [QUERY_KEYS.STOCK_CHECK, belowMinOnly, limit],
+    queryFn: () => rawMaterialsApi.checkStock(belowMinOnly, limit),
   });
 };
 

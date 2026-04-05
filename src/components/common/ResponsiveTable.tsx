@@ -62,13 +62,15 @@ export function ResponsiveTable<T>({
 
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, p: 2 }}>
-        {data.map((row) => (
+        {data.map((row, index) => (
           <Card
             key={keyExtractor(row)}
             sx={{
               p: 2,
               cursor: onRowClick ? 'pointer' : 'default',
-              transition: 'all 0.2s ease-in-out',
+              transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+              animation: 'row-fade-in 0.25s ease-out both',
+              animationDelay: `${Math.min(index * 40, 320)}ms`,
               '&:hover': onRowClick
                 ? {
                     bgcolor: theme.palette.table.rowHover,
@@ -170,12 +172,14 @@ export function ResponsiveTable<T>({
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.map((row) => (
+          {data.map((row, index) => (
             <TableRow
               key={keyExtractor(row)}
               hover
               sx={{
                 cursor: onRowClick ? 'pointer' : 'default',
+                animation: 'row-fade-in 0.2s ease-out both',
+                animationDelay: `${Math.min(index * 25, 250)}ms`,
               }}
               onClick={() => onRowClick?.(row)}
             >

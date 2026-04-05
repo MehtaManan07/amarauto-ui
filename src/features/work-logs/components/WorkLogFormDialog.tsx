@@ -13,6 +13,7 @@ import {
   Box,
   Typography,
   Divider,
+  Chip,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
@@ -46,7 +47,7 @@ const defaultRow: WorkLogRowData = {
 };
 
 const getJobRateLabel = (jr: JobRate) =>
-  `${jr.product_part_no || jr.operation_code} - ${jr.operation_code} - ${jr.operation_name || ''}`;
+  `[${jr.operation_code}] ${jr.operation_name || ''}${jr.product_part_no ? ` · ${jr.product_part_no}` : ''}`;
 
 // ── Per-row sub-component ────────────────────────────────────────────────────
 
@@ -121,15 +122,42 @@ const WorkLogRowFields: React.FC<WorkLogRowFieldsProps> = ({
           filterOptions={(x) => x}
           isOptionEqualToValue={(opt, val) => (opt as JobRate).id === (val as JobRate)?.id}
           loading={isFetching}
+          renderOption={(props, option) => {
+            const { key, ...liProps } = props as { key: string } & React.HTMLAttributes<HTMLLIElement>;
+            const jr = option as JobRate;
+            return (
+              <Box key={key} component="li" {...liProps} sx={{ py: 1.25, px: 1.5 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Chip
+                      label={jr.operation_code}
+                      size="small"
+                      color="primary"
+                      sx={{ height: 22, fontSize: '0.72rem', fontWeight: 700, letterSpacing: 0.3 }}
+                    />
+                    {jr.product_part_no && (
+                      <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
+                        {jr.product_part_no}
+                      </Typography>
+                    )}
+                  </Box>
+                  {jr.operation_name && (
+                    <Typography variant="body2" color="text.primary" sx={{ lineHeight: 1.3 }}>
+                      {jr.operation_name}
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
+            );
+          }}
           renderInput={(params) => (
             <TextField
               {...params}
-              label="Operation"
-              placeholder="Search…"
+              label="Operation Code"
+              placeholder="Search by code or name…"
               error={!!rowErrors?.job_rate_id}
               helperText={rowErrors?.job_rate_id?.message}
               disabled={isLoading}
-              size="small"
               InputProps={{
                 ...params.InputProps,
                 endAdornment: (
@@ -153,24 +181,29 @@ const WorkLogRowFields: React.FC<WorkLogRowFieldsProps> = ({
         sx={{
           border: 1,
           borderColor: 'divider',
-          borderRadius: 1,
-          p: 1.5,
-          mb: 1.5,
+          borderRadius: 2,
+          overflow: 'hidden',
+          mb: 2,
         }}
       >
-        {canRemove && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-            <Typography variant="caption" color="text.secondary">Row {index + 1}</Typography>
-            <IconButton size="small" color="error" onClick={onRemove} disabled={isLoading}>
-              <DeleteIcon fontSize="small" />
-            </IconButton>
-          </Box>
-        )}
-        <Grid container spacing={1.5}>
-          <Grid size={12}>{operationField}</Grid>
-          <Grid size={12}>
-            <Controller
-              name={`rows.${index}.work_date`}
+        {/* Operation section — visually prominent */}
+        <Box sx={{ px: 2, pt: 2, pb: 1.5, backgroundColor: 'primary.50', borderBottom: 1, borderColor: 'primary.100' }}>
+          {canRemove && (
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Typography variant="caption" color="primary" fontWeight={600}>Entry {index + 1}</Typography>
+              <IconButton size="small" color="error" onClick={onRemove} disabled={isLoading}>
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          )}
+          {operationField}
+        </Box>
+
+        <Box sx={{ px: 2, py: 1.5 }}>
+          <Grid container spacing={1.5}>
+            <Grid size={12}>
+              <Controller
+                name={`rows.${index}.work_date`}
               control={control}
               render={({ field: f }) => (
                 <TextField
@@ -272,15 +305,16 @@ const WorkLogRowFields: React.FC<WorkLogRowFieldsProps> = ({
               </Typography>
             </Grid>
           )}
-        </Grid>
+          </Grid>
+        </Box>
       </Box>
     );
   }
 
   // Desktop: horizontal row
   return (
-    <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', mb: 1 }}>
-      <Box sx={{ width: 200, flexShrink: 0 }}>{operationField}</Box>
+    <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', mb: 1.5 }}>
+      <Box sx={{ flex: '0 0 30%', minWidth: 0 }}>{operationField}</Box>
       <Controller
         name={`rows.${index}.work_date`}
         control={control}
@@ -293,7 +327,7 @@ const WorkLogRowFields: React.FC<WorkLogRowFieldsProps> = ({
             helperText={rowErrors?.work_date?.message}
             disabled={isLoading}
             size="small"
-            sx={{ width: 140, flexShrink: 0 }}
+            sx={{ flex: 1, minWidth: 0 }}
           />
         )}
       />
@@ -313,7 +347,7 @@ const WorkLogRowFields: React.FC<WorkLogRowFieldsProps> = ({
             helperText={rowErrors?.quantity?.message}
             disabled={isLoading}
             size="small"
-            sx={{ width: 80, flexShrink: 0 }}
+            sx={{ flex: 1, minWidth: 0 }}
           />
         )}
       />
@@ -330,7 +364,7 @@ const WorkLogRowFields: React.FC<WorkLogRowFieldsProps> = ({
             helperText={rowErrors?.start_time?.message}
             disabled={isLoading}
             size="small"
-            sx={{ width: 90, flexShrink: 0 }}
+            sx={{ flex: 1, minWidth: 0 }}
           />
         )}
       />
@@ -347,7 +381,7 @@ const WorkLogRowFields: React.FC<WorkLogRowFieldsProps> = ({
             helperText={(rowErrors as { end_time?: { message?: string } })?.end_time?.message}
             disabled={isLoading}
             size="small"
-            sx={{ width: 90, flexShrink: 0 }}
+            sx={{ flex: 1, minWidth: 0 }}
           />
         )}
       />
@@ -360,11 +394,11 @@ const WorkLogRowFields: React.FC<WorkLogRowFieldsProps> = ({
             placeholder="Notes"
             disabled={isLoading}
             size="small"
-            sx={{ flex: 1, minWidth: 60 }}
+            sx={{ flex: '0 0 15%', minWidth: 0 }}
           />
         )}
       />
-      <Box sx={{ width: 64, flexShrink: 0, pt: 1, textAlign: 'center' }}>
+      <Box sx={{ flex: 1, minWidth: 0, pt: 1, textAlign: 'center' }}>
         {duration !== null ? (
           <>
             <Typography variant="caption" display="block" color="text.secondary">
@@ -381,13 +415,12 @@ const WorkLogRowFields: React.FC<WorkLogRowFieldsProps> = ({
         )}
       </Box>
       <IconButton
-        size="small"
         color="error"
         onClick={onRemove}
         disabled={!canRemove || isLoading}
-        sx={{ flexShrink: 0, mt: 0.5 }}
+        sx={{ flexShrink: 0, width: 40, height: 40, mt: 0.25 }}
       >
-        <DeleteIcon fontSize="small" />
+        <DeleteIcon />
       </IconButton>
     </Box>
   );
@@ -523,13 +556,19 @@ export const WorkLogFormDialog: React.FC<WorkLogFormDialogProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth={isEditing ? 'sm' : 'lg'}
+      maxWidth={isEditing ? 'md' : 'xl'}
       fullWidth
       fullScreen={isMobile}
+      PaperProps={{ sx: { borderRadius: { xs: 0, sm: 3 } } }}
     >
       <form onSubmit={handleSubmit(handleFormSubmit)}>
-        <DialogTitle>
+        <DialogTitle sx={{ pb: 0.5 }}>
           {isEditing ? 'Edit Work Log' : 'Add Work Logs'}
+          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 400, mt: 0.25 }}>
+            {isEditing
+              ? 'Update the operation and details for this entry'
+              : 'Select an operation code for each work entry'}
+          </Typography>
         </DialogTitle>
 
         <DialogContent>
@@ -576,19 +615,22 @@ export const WorkLogFormDialog: React.FC<WorkLogFormDialogProps> = ({
                 sx={{
                   display: { xs: 'none', sm: 'flex' },
                   gap: 1,
-                  mb: 0.5,
-                  px: 0.5,
+                  mb: 1,
+                  px: 1,
+                  py: 0.75,
                   alignItems: 'center',
+                  backgroundColor: 'action.hover',
+                  borderRadius: 1,
                 }}
               >
-                <Typography variant="caption" color="text.secondary" sx={{ width: 200, flexShrink: 0 }}>Operation</Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ width: 140, flexShrink: 0 }}>Date</Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ width: 80, flexShrink: 0 }}>Quantity</Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ width: 90, flexShrink: 0 }}>Start</Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ width: 90, flexShrink: 0 }}>End</Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ flex: 1 }}>Notes</Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ width: 64, textAlign: 'center', flexShrink: 0 }}>Total</Typography>
-                <Box sx={{ width: 36, flexShrink: 0 }} />
+                <Typography variant="caption" color="primary" fontWeight={700} sx={{ flex: '0 0 30%', minWidth: 0 }}>Operation Code *</Typography>
+                <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ flex: 1, minWidth: 0 }}>Date</Typography>
+                <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ flex: 1, minWidth: 0 }}>Quantity</Typography>
+                <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ flex: 1, minWidth: 0 }}>Start</Typography>
+                <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ flex: 1, minWidth: 0 }}>End</Typography>
+                <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ flex: '0 0 15%', minWidth: 0 }}>Notes</Typography>
+                <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ flex: 1, textAlign: 'center', minWidth: 0 }}>Total</Typography>
+                <Box sx={{ width: 40, flexShrink: 0 }} />
               </Box>
             )}
 

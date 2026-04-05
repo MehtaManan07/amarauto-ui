@@ -83,10 +83,10 @@ export const bulkCreateRawMaterials = async (
   return response.data;
 };
 
-export const checkStock = async (belowMinOnly?: boolean): Promise<RawMaterial[]> => {
-  const response = await apiClient.get<RawMaterial[]>(API_ENDPOINTS.CHECK_STOCK, {
-    params: { below_min_only: belowMinOnly },
-  });
+export const checkStock = async (belowMinOnly?: boolean, limit?: number): Promise<RawMaterial[]> => {
+  const params: Record<string, unknown> = { below_min_only: belowMinOnly };
+  if (limit != null) params.limit = limit;
+  const response = await apiClient.get<RawMaterial[]>(API_ENDPOINTS.CHECK_STOCK, { params });
   return response.data;
 };
 

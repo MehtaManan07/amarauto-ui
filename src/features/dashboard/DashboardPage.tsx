@@ -40,9 +40,10 @@ interface StatCardProps {
   color: string;
   loading?: boolean;
   onClick?: () => void;
+  index?: number;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, loading, onClick }) => {
+const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, loading, onClick, index = 0 }) => {
   const theme = useTheme();
 
   return (
@@ -53,6 +54,8 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, loading,
         overflow: 'visible',
         cursor: onClick ? 'pointer' : 'default',
         transition: 'transform 0.2s, box-shadow 0.2s',
+        animation: 'row-fade-in 0.3s ease-out both',
+        animationDelay: `${index * 70}ms`,
         '&:hover': onClick
           ? {
               transform: 'translateY(-4px)',
@@ -115,7 +118,7 @@ export const DashboardPage: React.FC = () => {
   const today = getTodayISO();
 
   const { data: statsData, isLoading: loadingStats } = useDashboardStats();
-  const { data: lowStockItems = [], isLoading: loadingLowStock } = useStockCheck(true);
+  const { data: lowStockItems = [], isLoading: loadingLowStock } = useStockCheck(true, 8);
   const { data: workLogsData, isLoading: loadingWorkLogs } = useWorkLogs(1, 10, {
     workDateFrom: today,
     workDateTo: today,
@@ -123,7 +126,7 @@ export const DashboardPage: React.FC = () => {
   const { data: productionTrendData } = useProductionTrend(7);
 
   const workLogs = workLogsData?.items ?? [];
-  const lowStockDisplay = lowStockItems.slice(0, 8);
+  const lowStockDisplay = lowStockItems;
 
   const stats = [
     {
@@ -189,9 +192,9 @@ export const DashboardPage: React.FC = () => {
 
       {/* Stats Grid - 6 cards */}
       <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: { xs: 3, sm: 4 } }}>
-        {stats.map((stat) => (
+        {stats.map((stat, index) => (
           <Grid key={stat.title} size={{ xs: 12, sm: 6, md: 3 }}>
-            <StatCard {...stat} />
+            <StatCard {...stat} index={index} />
           </Grid>
         ))}
       </Grid>

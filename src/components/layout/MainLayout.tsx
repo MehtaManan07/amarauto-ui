@@ -245,6 +245,7 @@ export const MainLayout: React.FC = () => {
       </Box>
 
       <Box
+        key={location.pathname}
         component="main"
         sx={{
           flexGrow: 1,
@@ -252,6 +253,7 @@ export const MainLayout: React.FC = () => {
           width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
           mt: 8,
           bgcolor: 'background.default',
+          animation: 'page-fade-in 0.22s ease-out',
         }}
       >
         <Outlet />
